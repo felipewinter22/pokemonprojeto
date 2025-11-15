@@ -18,7 +18,7 @@ import com.centropokemon.model.Pokemon;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:8081")
+@CrossOrigin(origins = "http://localhost:8080")
 @RequestMapping("/api/pokemons")
 public class PokedexController {
 

@@ -4,64 +4,91 @@
  * @file        Pokemon.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
  * @version     1.0
- * @date        2025-11-11
+ * @date        2025-11-15
  * @description Classe base representando um Pokémon para uso com a API.
  */
 
 package com.centropokemon.model;
 
+import jakarta.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Representa um Pokémon dentro do sistema do Centro Pokémon.
  * Contém informações básicas como nome, tipos, vida atual,
- * sprite e descrição. Também inclui utilitários de cura.
+ * sprite e descrição. Também inclui utilitários de cura ( Poções ).
  */
+@Entity
+@Table(name = "pokemons")
 public class Pokemon {
 
     /** Identificador do ID do Pokémon. */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    /** Nome do Pokémon. */
-    private String nome;
+    /** Nome do Pokémon em português. */
+    @Column(name = "nome_pt", nullable = false)
+    private String nomePt;
 
-    /** Lista de tipos do Pokémon */
-    private List<String> tipos;
+    /** Nome do Pokémon em inglês. */
+    @Column(name = "nome_en", nullable = false)
+    private String nomeEn;
 
     /** URL ou caminho para a imagem do Pokémon. */
-    private String sprite;
-
-    /** Descrição do Pokémon. */
-    private String descricao;
+    @Column(name = "sprite_url", nullable = false)
+    private String spriteUrl;
 
     /** Vida atual do Pokémon. */
-    private Integer vida;
+    @Column(name = "vida_atual")
+    private Integer vidaAtual;
 
     /** Vida máxima do Pokémon. */
+    @Column(name = "vida_maxima")
     private Integer vidaMaxima;
+
+    /** Relacionamento com descrições do Pokémon. */
+    @OneToMany(mappedBy = "pokemon", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<PokemonDescricao> descricoes;
+
+    /** Relacionamento com tipos do Pokémon. */
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "pokemon_tipos",
+        joinColumns = @JoinColumn(name = "pokemon_id"),
+        inverseJoinColumns = @JoinColumn(name = "tipo_id")
+    )
+    private List<Tipo> tipos;
+
+    /** Relacionamento com stats do Pokémon. */
+    @OneToOne(mappedBy = "pokemon", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private PokemonStats stats;
 
     /**
      * Construtor padrão. Cria um Pokémon com vida inicial e máxima iguais a 100.
      */
     public Pokemon() {
-        this.vida = 100;
+        this.vidaAtual = 100;
         this.vidaMaxima = 100;
+        this.descricoes = new ArrayList<>();
+        this.tipos = new ArrayList<>();
     }
 
     /**
      * Construtor completo para inicialização com valores básicos.
      *
      * @param id       ID do Pokémon
-     * @param nome     Nome do Pokémon
-     * @param tipos    Lista contendo os tipos do Pokémon
-     * @param sprite   URL ou caminho do sprite
+     * @param nomePt   Nome do Pokémon em português
+     * @param nomeEn   Nome do Pokémon em inglês
+     * @param spriteUrl URL do sprite
      */
-    public Pokemon(Integer id, String nome, List<String> tipos, String sprite) {
+    public Pokemon(Integer id, String nomePt, String nomeEn, String spriteUrl) {
         this();
         this.id = id;
-        this.nome = nome;
-        this.tipos = tipos;
-        this.sprite = sprite;
+        this.nomePt = nomePt;
+        this.nomeEn = nomeEn;
+        this.spriteUrl = spriteUrl;
     }
 
     /** @return o ID do Pokémon */
@@ -78,74 +105,60 @@ public class Pokemon {
         this.id = id;
     }
 
-    /** @return o nome do Pokémon */
-    public String getNome() {
-        return nome;
+    /** @return o nome do Pokémon em português */
+    public String getNomePt() {
+        return nomePt;
     }
 
     /**
-     * Define o nome do Pokémon.
+     * Define o nome do Pokémon em português.
      *
-     * @param nome nome a ser definido
+     * @param nomePt nome em português
      */
-    public void setNome(String nome) {
-        this.nome = nome;
+    public void setNomePt(String nomePt) {
+        this.nomePt = nomePt;
     }
 
-    /** @return lista dos tipos do Pokémon */
-    public List<String> getTipos() {
-        return tipos;
+    /** @return o nome do Pokémon em inglês */
+    public String getNomeEn() {
+        return nomeEn;
     }
 
     /**
-     * Define a lista de tipos do Pokémon.
+     * Define o nome do Pokémon em inglês.
      *
-     * @param tipos tipos a serem definidos
+     * @param nomeEn nome em inglês
      */
-    public void setTipos(List<String> tipos) {
-        this.tipos = tipos;
+    public void setNomeEn(String nomeEn) {
+        this.nomeEn = nomeEn;
     }
 
-    /** @return sprite/imagem do Pokémon */
-    public String getSprite() {
-        return sprite;
+    /** @return URL do sprite do Pokémon */
+    public String getSpriteUrl() {
+        return spriteUrl;
     }
 
     /**
-     * Define o sprite do Pokémon.
+     * Define a URL do sprite do Pokémon.
      *
-     * @param sprite URL ou caminho da imagem
+     * @param spriteUrl URL da imagem
      */
-    public void setSprite(String sprite) {
-        this.sprite = sprite;
-    }
-
-    /** @return descrição do Pokémon */
-    public String getDescricao() {
-        return descricao;
-    }
-
-    /**
-     * Define a descrição do Pokémon.
-     *
-     * @param descricao texto descritivo
-     */
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
+    public void setSpriteUrl(String spriteUrl) {
+        this.spriteUrl = spriteUrl;
     }
 
     /** @return vida atual do Pokémon */
-    public Integer getVida() {
-        return vida;
+    public Integer getVidaAtual() {
+        return vidaAtual;
     }
 
     /**
      * Define a vida atual do Pokémon.
      *
-     * @param vida quantidade atual de vida
+     * @param vidaAtual quantidade atual de vida
      */
-    public void setVida(Integer vida) {
-        this.vida = vida;
+    public void setVidaAtual(Integer vidaAtual) {
+        this.vidaAtual = vidaAtual;
     }
 
     /** @return vida máxima do Pokémon */
@@ -162,19 +175,61 @@ public class Pokemon {
         this.vidaMaxima = vidaMaxima;
     }
 
+    /** @return lista de descrições do Pokémon */
+    public List<PokemonDescricao> getDescricoes() {
+        return descricoes;
+    }
+
+    /**
+     * Define a lista de descrições do Pokémon.
+     *
+     * @param descricoes lista de descrições
+     */
+    public void setDescricoes(List<PokemonDescricao> descricoes) {
+        this.descricoes = descricoes;
+    }
+
+    /** @return lista de tipos do Pokémon */
+    public List<Tipo> getTipos() {
+        return tipos;
+    }
+
+    /**
+     * Define a lista de tipos do Pokémon.
+     *
+     * @param tipos lista de tipos
+     */
+    public void setTipos(List<Tipo> tipos) {
+        this.tipos = tipos;
+    }
+
+    /** @return stats do Pokémon */
+    public PokemonStats getStats() {
+        return stats;
+    }
+
+    /**
+     * Define os stats do Pokémon.
+     *
+     * @param stats stats do Pokémon
+     */
+    public void setStats(PokemonStats stats) {
+        this.stats = stats;
+    }
+
     /**
      * Restaura a vida do Pokémon para o valor máximo.
      */
     public void tratar() {
-        this.vida = this.vidaMaxima;
+        this.vidaAtual = this.vidaMaxima;
     }
 
     /**
      * Verifica se o Pokémon precisa ser curado.
      *
-     * @return true se vida < vidaMaxima, false caso contrário
+     * @return true se vidaAtual < vidaMaxima, false caso contrário
      */
     public boolean precisaCurar() {
-        return vida < vidaMaxima;
+        return vidaAtual < vidaMaxima;
     }
 }
