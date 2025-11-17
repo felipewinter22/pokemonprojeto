@@ -15,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import com.centropokemon.service.PokedexService;
 import com.centropokemon.exception.PokemonNotFoundException;
 import com.centropokemon.model.Pokemon;
-import java.util.Map;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:8080")

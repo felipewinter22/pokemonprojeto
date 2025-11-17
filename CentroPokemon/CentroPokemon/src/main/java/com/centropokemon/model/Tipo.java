@@ -1,12 +1,4 @@
-package com.centropokemon.model;
-
-import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
-
-public class Tipo {
-
-    /*
+/*
  * Centro Pokémon - Classe base Tipo
  * ---------------------------------------
  * @file        Tipo.java
@@ -273,5 +265,4 @@ public class Tipo {
         /** Tipo Aço: forte contra Gelo, Pedra e Fada. */ ACO,
         /** Tipo Fada: forte contra Lutador, Dragão e Sombrio. */ FADA
     }
-}
 }

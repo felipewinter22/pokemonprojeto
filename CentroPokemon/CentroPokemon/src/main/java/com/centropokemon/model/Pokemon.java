@@ -36,6 +36,10 @@ public class Pokemon {
     @Column(name = "nome_en", nullable = false)
     private String nomeEn;
 
+    /** Identificador do Pokémon na PokeAPI. */
+    @Column(name = "pokeapi_id", unique = true)
+    private Integer pokeApiId;
+
     /** URL ou caminho para a imagem do Pokémon. */
     @Column(name = "sprite_url", nullable = false)
     private String spriteUrl;
@@ -131,6 +135,20 @@ public class Pokemon {
      */
     public void setNomeEn(String nomeEn) {
         this.nomeEn = nomeEn;
+    }
+
+    /** @return o ID do Pokémon na PokeAPI */
+    public Integer getPokeApiId() {
+        return pokeApiId;
+    }
+
+    /**
+     * Define o ID do Pokémon na PokeAPI.
+     *
+     * @param pokeApiId ID externo da PokeAPI
+     */
+    public void setPokeApiId(Integer pokeApiId) {
+        this.pokeApiId = pokeApiId;
     }
 
     /** @return URL do sprite do Pokémon */
