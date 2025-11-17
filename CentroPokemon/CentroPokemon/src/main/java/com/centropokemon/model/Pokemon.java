@@ -11,6 +11,8 @@
 package com.centropokemon.model;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +23,7 @@ import java.util.List;
  */
 @Entity
 @Table(name = "pokemons")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Pokemon {
 
     /** Identificador do ID do Pokémon. */
@@ -54,6 +57,7 @@ public class Pokemon {
 
     /** Relacionamento com descrições do Pokémon. */
     @OneToMany(mappedBy = "pokemon", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference("descricao-pokemon")
     private List<PokemonDescricao> descricoes;
 
     /** Relacionamento com tipos do Pokémon. */
@@ -67,6 +71,7 @@ public class Pokemon {
 
     /** Relacionamento com stats do Pokémon. */
     @OneToOne(mappedBy = "pokemon", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference("stats-pokemon")
     private PokemonStats stats;
 
     /**

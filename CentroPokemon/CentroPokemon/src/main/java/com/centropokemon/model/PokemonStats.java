@@ -12,6 +12,8 @@
 package com.centropokemon.model;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * Representa os atributos de combate de um Pokémon.
@@ -19,6 +21,7 @@ import jakarta.persistence.*;
  */
 @Entity
 @Table(name = "pokemon_stats")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class PokemonStats {
 
     /** Identificador do registro de atributos do Pokémon. */
@@ -29,6 +32,7 @@ public class PokemonStats {
     /** Referência ao Pokémon dono destes atributos. */
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pokemon_id", nullable = false, unique = true)
+    @JsonBackReference("stats-pokemon")
     private Pokemon pokemon;
 
     /** Pontos de vida base (HP). */

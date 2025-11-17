@@ -19,9 +19,12 @@ package com.centropokemon.model;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "tipos")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Tipo {
 
     /** Identificador do tipo. */
@@ -43,6 +46,7 @@ public class Tipo {
 
     /** Relacionamento com Pokémons que possuem este tipo. */
     @ManyToMany(mappedBy = "tipos", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Pokemon> pokemons = new ArrayList<>();
 
     /** Construtor padrão. */

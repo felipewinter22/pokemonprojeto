@@ -15,17 +15,27 @@ import com.centropokemon.model.Pokemon;
 
 /**
  * Serviço responsável por orquestrar a busca de Pokémons.
- * Implementação será expandida com repositórios e cache.
+ * No estágio atual, consulta a PokeAPI via `DataInicializacao`.
  */
 @Service
 public class PokedexService {
 
+    private final DataInicializacao dataInicializacao;
+
     /**
-     * Busca um Pokémon pelo nome.
+     * Construtor com injeção do serviço de dados da PokeAPI.
+     * @param dataInicializacao serviço de carregamento da PokeAPI
+     */
+    public PokedexService(DataInicializacao dataInicializacao) {
+        this.dataInicializacao = dataInicializacao;
+    }
+
+    /**
+     * Busca um Pokémon pelo nome (inglês) usando a PokeAPI.
      * @param nome nome do Pokémon
      * @return entidade `Pokemon` ou null se não encontrado
      */
     public Pokemon buscarPokemonPorNome(String nome) {
-        return null;
+        return dataInicializacao.carregarPokemon(nome);
     }
 }

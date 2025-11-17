@@ -16,9 +16,15 @@
 package com.centropokemon.model;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @Entity
 @Table(name = "pokemon_descricoes")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@JsonInclude(Include.NON_NULL)
 public class PokemonDescricao {
 
     /** Identificador do registro de descrição. */
@@ -29,6 +35,7 @@ public class PokemonDescricao {
     /** Referência ao Pokémon ao qual a descrição pertence. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pokemon_id", nullable = false)
+    @JsonBackReference("descricao-pokemon")
     private Pokemon pokemon;
 
     /** Descrição em português. */
