@@ -1,0 +1,533 @@
+/**
+ * @file        pokedex-anime.js
+ * @summary     Lógica da Pokédex estilo anime
+ * @description Controla busca, navegação, filtros, estado e integração com a API.
+ * @api         GET /api/pokemons/{id|nome}, /random, /type/{tipo}/random
+ * @storage     pokedex_anime_stats, pokedex_anime_search_counts, pokedex_anime_recent
+ */
+const PokedexAnime = (() => {
+    const config = {
+        apiBaseUrl: '/api/pokemons',
+        totalPokemon: 898,
+        localStorageKey: 'pokedex_anime_stats',
+        defaultPokemon: 25,
+        searchCountsKey: 'pokedex_anime_search_counts',
+        recentKey: 'pokedex_anime_recent'
+    };
+
+    let state = {
+        currentPokemon: null,
+        currentPokemonId: config.defaultPokemon,
+        viewedPokemon: new Set(),
+        caughtPokemon: new Set(),
+        activeTypeFilter: null,
+        isLoading: false,
+        searchCounts: {},
+        recentViewed: []
+    };
+
+    const elements = {
+        pokemonNumber: document.getElementById('pokemon-number'),
+        pokemonName: document.getElementById('pokemon-name'),
+        pokemonSprite: document.getElementById('pokemon-sprite'),
+        pokemonTypes: document.getElementById('pokemon-types'),
+        pokemonHeight: document.getElementById('pokemon-height'),
+        pokemonWeight: document.getElementById('pokemon-weight'),
+        pokemonAbility: document.getElementById('pokemon-ability'),
+        pokemonDescription: document.getElementById('pokemon-description'),
+        searchInput: document.getElementById('pokemon-search'),
+        searchBtn: document.getElementById('search-btn'),
+        prevBtn: document.getElementById('prev-btn'),
+        nextBtn: document.getElementById('next-btn'),
+        randomBtn: document.getElementById('random-btn'),
+        clearBtn: document.getElementById('clear-btn'),
+        registerBtn: document.getElementById('register-btn'),
+        typeButtons: document.querySelectorAll('.type-btn, .type-chip'),
+        totalPokemon: document.getElementById('total-pokemon'),
+        viewedPokemon: document.getElementById('viewed-pokemon'),
+        caughtPokemon: document.getElementById('caught-pokemon'),
+        lights: document.querySelectorAll('.light'),
+        popularList: document.getElementById('popular-list'),
+        recentList: document.getElementById('recent-list'),
+        dailyList: document.getElementById('daily-list'),
+        capturedGrid: document.getElementById('captured-grid'),
+        tipCard: document.getElementById('tip-card')
+    };
+
+    /**
+     * @function   init
+     * @summary    Inicializa a Pokédex: stats, eventos, Pokémon padrão e sidebars
+     */
+    const init = async () => {
+        loadStats();
+        setupEventListeners();
+        elements.totalPokemon && (elements.totalPokemon.textContent = config.totalPokemon);
+        await loadPokemon(config.defaultPokemon);
+        updateLightsAnimation();
+        renderCapturedGrid();
+        renderTip();
+    };
+
+    const setupEventListeners = () => {
+        const on = (el, evt, handler) => { if (el) el.addEventListener(evt, handler); };
+        on(elements.searchBtn, 'click', handleSearch);
+        if (elements.searchInput) {
+            elements.searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleSearch();
+            });
+        }
+        on(elements.prevBtn, 'click', () => navigatePokemon(-1));
+        on(elements.nextBtn, 'click', () => navigatePokemon(1));
+        on(elements.randomBtn, 'click', loadRandomPokemon);
+        on(elements.clearBtn, 'click', clearCurrentPokemon);
+        on(elements.registerBtn, 'click', registerPokemon);
+        elements.typeButtons && elements.typeButtons.forEach(btn => {
+            btn.addEventListener('click', () => handleTypeFilter(btn.dataset.type));
+        });
+    };
+
+    const loadStats = () => {
+        try {
+            const savedStats = localStorage.getItem(config.localStorageKey);
+            if (savedStats) {
+                const stats = JSON.parse(savedStats);
+                state.viewedPokemon = new Set(stats.viewed || []);
+                state.caughtPokemon = new Set(stats.caught || []);
+                updateStatsDisplay();
+            }
+            const savedCounts = localStorage.getItem(config.searchCountsKey);
+            if (savedCounts) {
+                state.searchCounts = JSON.parse(savedCounts) || {};
+            }
+            const savedRecent = localStorage.getItem(config.recentKey);
+            if (savedRecent) {
+                state.recentViewed = JSON.parse(savedRecent) || [];
+            }
+            updateSidebar();
+        } catch {}
+    };
+
+    const saveStats = () => {
+        try {
+            const stats = {
+                viewed: Array.from(state.viewedPokemon),
+                caught: Array.from(state.caughtPokemon),
+                lastUpdated: new Date().toISOString()
+            };
+            localStorage.setItem(config.localStorageKey, JSON.stringify(stats));
+        } catch {}
+    };
+
+    const updateStatsDisplay = () => {
+        if (elements.viewedPokemon) elements.viewedPokemon.textContent = state.viewedPokemon.size;
+        if (elements.caughtPokemon) elements.caughtPokemon.textContent = state.caughtPokemon.size;
+        if (elements.totalPokemon) elements.totalPokemon.textContent = config.totalPokemon;
+    };
+
+    const saveSearchCounts = () => {
+        try { localStorage.setItem(config.searchCountsKey, JSON.stringify(state.searchCounts)); } catch {}
+    };
+
+    const saveRecent = () => {
+        try { localStorage.setItem(config.recentKey, JSON.stringify(state.recentViewed)); } catch {}
+    };
+
+    const incrementSearchCount = (id, name) => {
+        const key = String(id);
+        const current = state.searchCounts[key] || { count: 0, name: '' };
+        current.count += 1;
+        if (name) current.name = name;
+        state.searchCounts[key] = current;
+        saveSearchCounts();
+    };
+
+    const addRecent = (pokemon) => {
+        const id = pokemon.pokeApiId || pokemon.id;
+        const name = (pokemon.nomePt || pokemon.nomeEn || '').toUpperCase();
+        state.recentViewed = state.recentViewed.filter(r => r.id !== id);
+        state.recentViewed.unshift({ id, name });
+        state.recentViewed = state.recentViewed.slice(0, 10);
+        saveRecent();
+    };
+
+    const updateSidebar = () => {
+        if (elements.popularList) {
+            const entries = Object.entries(state.searchCounts)
+                .map(([id, info]) => ({ id, name: info.name || `#${String(id).padStart(3,'0')}`, count: info.count }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 10);
+            elements.popularList.innerHTML = entries.map(e => `
+                <li>
+                    <span>${e.name}</span>
+                    <span class="count">${e.count}</span>
+                </li>
+            `).join('');
+        }
+        if (elements.recentList) {
+            elements.recentList.innerHTML = state.recentViewed.slice(0,10).map(r => `
+                <li>
+                    <span>${r.name}</span>
+                    <a href="/pokedex-anime.html#${r.id}" class="pokedex-link">Ver</a>
+                </li>
+            `).join('');
+        }
+    };
+    const renderCapturedGrid = () => {
+        if (!elements.capturedGrid) return;
+        const ids = Array.from(state.caughtPokemon).slice(-12).reverse();
+        elements.capturedGrid.innerHTML = ids.map((id) => {
+            const url = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+            return `<div class="sprite-item"><img src="${url}" alt="#${String(id).padStart(3,'0')}"></div>`;
+        }).join('');
+    };
+
+    const handleSearch = async () => {
+        const searchTerm = elements.searchInput.value.trim();
+        if (!searchTerm) return;
+        await loadPokemon(searchTerm);
+    };
+
+    const fetchJson = async (url) => {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Erro na requisição');
+        return res.json();
+    };
+
+    /**
+     * @function   loadPokemon
+     * @param      {number|string} identifier ID ou nome de Pokémon
+     * @summary    Busca Pokémon na API e atualiza estado/UI
+     */
+    const loadPokemon = async (identifier) => {
+        if (state.isLoading) return;
+        state.isLoading = true;
+        showLoadingState(true);
+        try {
+            const data = await fetchJson(`${config.apiBaseUrl}/${identifier}`);
+            state.currentPokemon = data;
+            state.currentPokemonId = data.pokeApiId || data.id || state.currentPokemonId;
+            state.viewedPokemon.add(state.currentPokemonId);
+            updatePokemonDisplay();
+            updateStatsDisplay();
+            saveStats();
+            incrementSearchCount(state.currentPokemonId, (data.nomePt || data.nomeEn || '').toUpperCase());
+            addRecent(data);
+            updateSidebar();
+            renderCapturedGrid();
+        } catch (error) {
+            showError('Pokémon não encontrado! Tente outro nome ou número.');
+        } finally {
+            state.isLoading = false;
+            showLoadingState(false);
+        }
+    };
+
+    const getDescription = (pokemon) => {
+        if (!pokemon || !pokemon.descricoes || !pokemon.descricoes.length) return null;
+        const d = pokemon.descricoes[0];
+        return d.descricaoPt || d.descricaoEn || null;
+    };
+
+    /**
+     * @function   updatePokemonDisplay
+     * @summary    Atualiza tela com dados do Pokémon atual
+     */
+    const updatePokemonDisplay = () => {
+        if (!state.currentPokemon) return;
+        const p = state.currentPokemon;
+        const id = p.pokeApiId || p.id;
+        const name = (p.nomePt || p.nomeEn || '').toUpperCase();
+        const sprite = p.spriteUrl || (id ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png` : '');
+        const tipos = Array.isArray(p.tipos) ? p.tipos.map(t => (t.nomePt || t.nome || t.nomeEn || '').toUpperCase()) : [];
+
+        elements.pokemonNumber.textContent = `#${String(id || 0).padStart(3, '0')}`;
+        elements.pokemonName.textContent = name || '------';
+        elements.pokemonSprite.src = sprite;
+        elements.pokemonSprite.alt = name;
+
+        elements.pokemonTypes.textContent = tipos.length ? tipos.join(' / ') : '------';
+        elements.pokemonTypes.className = 'value';
+        tipos.forEach(type => {
+            elements.pokemonTypes.classList.add(`type-${type.toLowerCase()}`);
+        });
+
+        const stats = p.stats || {};
+        elements.pokemonHeight.textContent = 'N/D';
+        elements.pokemonWeight.textContent = 'N/D';
+        elements.pokemonAbility.textContent = 'N/D';
+
+        const desc = getDescription(p) || 'Descrição não disponível.';
+        elements.pokemonDescription.textContent = desc;
+
+        if (elements.searchInput) elements.searchInput.value = '';
+        updateLightsAnimation();
+        bumpMission('view_5', 1);
+        const tiposLower = tipos.map(t => t.toLowerCase());
+        if (tiposLower.includes('água') || tiposLower.includes('agua') || tiposLower.includes('water')) {
+            bumpMission('type_water', 1);
+        }
+    };
+
+    const navigatePokemon = (direction) => {
+        const base = state.currentPokemonId || config.defaultPokemon;
+        let newId = base + direction;
+        if (newId < 1) newId = config.totalPokemon;
+        if (newId > config.totalPokemon) newId = 1;
+        loadPokemon(newId);
+    };
+
+    const loadRandomPokemon = async () => {
+        if (state.isLoading) return;
+        state.isLoading = true;
+        showLoadingState(true);
+        try {
+            const data = await fetchJson(`${config.apiBaseUrl}/random`);
+            state.currentPokemon = data;
+            state.currentPokemonId = data.pokeApiId || data.id || state.currentPokemonId;
+            state.viewedPokemon.add(state.currentPokemonId);
+            updatePokemonDisplay();
+            updateStatsDisplay();
+            saveStats();
+            incrementSearchCount(state.currentPokemonId, (data.nomePt || data.nomeEn || '').toUpperCase());
+            addRecent(data);
+            updateSidebar();
+            renderCapturedGrid();
+        } catch {
+            showError('Erro ao carregar Pokémon aleatório');
+        } finally {
+            state.isLoading = false;
+            showLoadingState(false);
+        }
+    };
+
+    const clearCurrentPokemon = () => {
+        state.currentPokemon = null;
+        state.currentPokemonId = config.defaultPokemon;
+        elements.pokemonNumber.textContent = '#000';
+        elements.pokemonName.textContent = '------';
+        elements.pokemonSprite.src = '';
+        elements.pokemonSprite.alt = '';
+        elements.pokemonTypes.textContent = '------';
+        elements.pokemonTypes.className = 'value';
+        elements.pokemonHeight.textContent = 'N/D';
+        elements.pokemonWeight.textContent = 'N/D';
+        elements.pokemonAbility.textContent = 'N/D';
+        elements.pokemonDescription.textContent = 'Use a busca para encontrar um Pokémon.';
+        updateLightsAnimation();
+    };
+
+    const registerPokemon = () => {
+        if (!state.currentPokemon) {
+            showError('Nenhum Pokémon para cadastrar!');
+            return;
+        }
+        state.caughtPokemon.add(state.currentPokemonId);
+        updateStatsDisplay();
+        saveStats();
+        showNotification(`🎉 ${elements.pokemonName.textContent} cadastrado!`);
+        bumpMission('register_1', 1);
+        renderCapturedGrid();
+    };
+
+    const handleTypeFilter = (type) => {
+        if (state.activeTypeFilter === type) {
+            state.activeTypeFilter = null;
+            elements.typeButtons.forEach(btn => btn.classList.remove('active'));
+            showNotification('Filtro removido');
+        } else {
+            state.activeTypeFilter = type;
+            elements.typeButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.type === type);
+            });
+            showNotification(`Filtrando por: ${type.toUpperCase()}`);
+            loadRandomPokemonByType(type);
+        }
+    };
+
+    /**
+     * @function   loadRandomPokemonByType
+     * @param      {string} type Tipo Pokémon (ex.: 'fire')
+     * @summary    Carrega Pokémon aleatório do tipo selecionado
+     */
+    const loadRandomPokemonByType = async (type) => {
+        if (state.isLoading) return;
+        state.isLoading = true;
+        showLoadingState(true);
+        try {
+            const data = await fetchJson(`${config.apiBaseUrl}/type/${type}/random`);
+            state.currentPokemon = data;
+            state.currentPokemonId = data.pokeApiId || data.id || state.currentPokemonId;
+            state.viewedPokemon.add(state.currentPokemonId);
+            updatePokemonDisplay();
+            updateStatsDisplay();
+            saveStats();
+            incrementSearchCount(state.currentPokemonId, (data.nomePt || data.nomeEn || '').toUpperCase());
+            addRecent(data);
+            updateSidebar();
+            renderCapturedGrid();
+        } catch {
+            showError('Erro ao carregar Pokémon do tipo selecionado');
+        } finally {
+            state.isLoading = false;
+            showLoadingState(false);
+        }
+    };
+
+    const showLoadingState = (isLoading) => {
+        const screen = document.querySelector('.pokedex-screen');
+        if (!screen) return;
+        if (isLoading) {
+            screen.classList.add('loading');
+            if (elements.searchBtn) elements.searchBtn.disabled = true;
+            if (elements.randomBtn) elements.randomBtn.disabled = true;
+        } else {
+            screen.classList.remove('loading');
+            if (elements.searchBtn) elements.searchBtn.disabled = false;
+            if (elements.randomBtn) elements.randomBtn.disabled = false;
+        }
+    };
+
+    const updateLightsAnimation = () => {
+        if (!elements.lights || elements.lights.length === 0) return;
+        elements.lights.forEach(light => light.classList.remove('blinking'));
+        if (state.currentPokemon) {
+            if (elements.lights[0]) elements.lights[0].classList.add('blinking');
+            if (state.caughtPokemon.has(state.currentPokemonId) && elements.lights[1]) {
+                elements.lights[1].classList.add('blinking');
+            }
+        }
+    };
+
+    const showNotification = (message) => {
+        const notification = document.createElement('div');
+        notification.className = 'pokedex-notification';
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        setTimeout(() => { notification.remove(); }, 3000);
+    };
+
+    const showError = (message) => {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'pokedex-error';
+        errorDiv.textContent = message;
+        document.body.appendChild(errorDiv);
+        setTimeout(() => { errorDiv.remove(); }, 3000);
+    };
+
+    return {
+        init,
+        loadPokemon,
+        loadRandomPokemon,
+        clearCurrentPokemon,
+        registerPokemon
+    };
+})();
+
+document.addEventListener('DOMContentLoaded', () => { try { generateDailyMissions(); } catch {} PokedexAnime.init(); });
+
+const tipMessages = [
+    'Dica: use filtros por tipo para descobrir novos!',
+    'Curiosidade: Pikachu é #025 na Pokédex.',
+    'Dica: clique em Aleatório para explorar.',
+    'Curiosidade: tipos água são ótimos contra fogo!',
+    'Dica: cadastre para montar sua coleção.'
+];
+
+const renderTip = () => {
+    const el = document.getElementById('tip-card');
+    if (!el) return;
+    const msg = tipMessages[Math.floor(Math.random() * tipMessages.length)];
+    el.textContent = msg;
+};
+
+const style = document.createElement('style');
+style.textContent = `
+    .pokedex-notification {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--pokedex-screen-border);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-family: 'Press Start 2P', monospace;
+        font-size: 10px;
+        z-index: 1000;
+        animation: slideDown 0.3s ease;
+    }
+    .pokedex-error {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--pokedex-button-red);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-family: 'Press Start 2P', monospace;
+        font-size: 10px;
+        z-index: 1000;
+        animation: slideDown 0.3s ease;
+    }
+    .pokedex-screen.loading { opacity: 0.7; pointer-events: none; position: relative; }
+    .pokedex-screen.loading::after {
+        content: 'CARREGANDO...';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: 'Press Start 2P', monospace;
+        font-size: 12px;
+        color: white;
+    }
+    .type-btn.active { transform: scale(1.1); box-shadow: 0 0 10px currentColor; }
+    @keyframes slideDown { from { transform: translate(-50%, -100%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+`;
+document.head.appendChild(style);
+    const daily = {
+        key: 'pokedex_anime_daily',
+        data: null,
+    };
+
+    const generateDailyMissions = () => {
+        const today = new Date().toISOString().slice(0,10);
+        const saved = JSON.parse(localStorage.getItem(daily.key) || 'null');
+        if (!saved || saved.date !== today) {
+            daily.data = {
+                date: today,
+                missions: [
+                    { id: 'view_5', label: 'Ver 5 Pokémon hoje', progress: 0, target: 5 },
+                    { id: 'type_water', label: 'Encontrar um Pokémon do tipo Água', progress: 0, target: 1 },
+                    { id: 'register_1', label: 'Cadastrar 1 Pokémon', progress: 0, target: 1 }
+                ]
+            };
+            localStorage.setItem(daily.key, JSON.stringify(daily.data));
+        } else {
+            daily.data = saved;
+        }
+        renderDailyMissions();
+    };
+
+    const saveDaily = () => { try { localStorage.setItem(daily.key, JSON.stringify(daily.data)); } catch {} };
+
+    const renderDailyMissions = () => {
+        if (!elements.dailyList || !daily.data) return;
+        elements.dailyList.innerHTML = daily.data.missions.map(m => {
+            const pct = Math.min(100, Math.round((m.progress / m.target) * 100));
+            return `<li>
+                <div>${m.label} (${m.progress}/${m.target})</div>
+                <div class="daily-progress"><span style="width:${pct}%;"></span></div>
+            </li>`;
+        }).join('');
+    };
+
+    const bumpMission = (id, inc = 1) => {
+        if (!daily.data) return;
+        const mission = daily.data.missions.find(m => m.id === id);
+        if (mission) {
+            mission.progress = Math.min(mission.target, mission.progress + inc);
+            saveDaily();
+            renderDailyMissions();
+        }
+    };

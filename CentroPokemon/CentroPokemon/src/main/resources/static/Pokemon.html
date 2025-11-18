@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<!--
+@file        Pokemon.html
+@summary     Página “Index” do Centro Pokémon
+@description Landing page com header padrão, seções de boas-vindas,
+             estatísticas, destaque do dia, ações rápidas, notícias,
+             equipe médica e oferta.
+@css         /css/novo-style.css
+@js          (opcional) /js/animacoes.js para navegação por âncoras
+-->
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro Pokémon - Página Básica</title>
+    <link rel="stylesheet" href="/css/novo-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!--
+    @section    Header
+    @purpose    Cabeçalho fixo com navegação principal
+    @links      Início, Pokédex, Centro de Cura, Sobre
+    -->
+    <header>
+        <div class="header-content">
+            <h1>Centro Pokémon</h1>
+            <nav>
+                <ul>
+                    <li><a href="/Pokemon.html" class="active">Início</a></li>
+                    <li><a href="/pokedex-anime.html">Pokédex</a></li>
+                    <li><a href="#centro">Centro de Cura</a></li>
+                    <li><a href="#sobre">Sobre</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main>
+        <!--
+        @section    Página Inicial
+        @purpose    Painel com boas-vindas e módulos informativos
+        @modules    Boas-vindas, Estatísticas, Destaque do dia, Ações rápidas,
+                    Notícias, Equipe, Oferta
+        -->
+        <div class="pagina ativa" id="inicio">
+            <h2>Bem-vindo ao Centro Pokémon</h2>
+            
+            <div class="pagina-content">
+                <!--
+                @block      Boas-vindas
+                @purpose    Mensagem introdutória ao usuário
+                -->
+                <div class="welcome-message">
+                    <p>Olá, Treinador! Este é o Centro Pokémon, onde seus companheiros recebem os melhores cuidados.</p>
+                </div>
+
+                <!--
+                @block      Estatísticas do Centro
+                @data       Quantidades agregadas (curados, atendidos, espécies)
+                -->
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <span class="stat-number">1,234</span>
+                        <span class="stat-label">Pokémon Curados</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">567</span>
+                        <span class="stat-label">Treinadores Atendidos</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">89</span>
+                        <span class="stat-label">Espécies Diferentes</span>
+                    </div>
+                </div>
+
+                <!--
+                @block      Pokémon em Destaque
+                @purpose    Mostra o destaque do dia com sprite e dados resumidos
+                -->
+                <div class="pokemon-destaque">
+                    <div class="destaque-content">
+                        <div class="destaque-info">
+                            <h4>Pikachu</h4>
+                            <p>Nível: 25</p>
+                            <p>Tipo: Elétrico</p>
+                            <p>HP: 72/72</p>
+                        </div>
+                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" 
+                             alt="Pikachu" class="destaque-sprite">
+                    </div>
+                </div>
+
+                <!--
+                @block      Ações Rápidas
+                @purpose    Botões de navegação/ação principais do site
+                -->
+                <div class="quick-actions">
+                    <button class="quick-btn">
+                        <span class="feature-icon">⚕️</span>
+                        Curar Pokémon
+                    </button>
+                    <button class="quick-btn secondary">
+                        <span class="feature-icon">📋</span>
+                        Ver Pokédex
+                    </button>
+                    <button class="quick-btn tertiary">
+                        <span class="feature-icon">👥</span>
+                        Equipe Médica
+                    </button>
+                </div>
+
+                <!--
+                @block      Notícias
+                @purpose    Grid com notícias recentes e datas
+                -->
+                <div class="news-container">
+                    <h3>Últimas Notícias</h3>
+                    <div class="news-grid">
+                        <div class="news-item">
+                            <h4>Novo Tratamento Disponível</h4>
+                            <p>Implementamos uma nova técnica de cura para Pokémon do tipo Fogo.</p>
+                            <span class="news-date">17/11/2024</span>
+                        </div>
+                        <div class="news-item">
+                            <h4>Torneio da Liga</h4>
+                            <p>Inscrições abertas para o torneio regional. Prepare seus Pokémon!</p>
+                            <span class="news-date">15/11/2024</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!--
+                @block      Equipe Médica
+                @purpose    Lista a equipe com cargos e especialidades
+                -->
+                <div class="equipe-container">
+                    <h3>Nossa Equipe</h3>
+                    <div class="equipe-grid">
+                        <div class="equipe-member">
+                            <div class="equipe-avatar">👨‍⚕️</div>
+                            <h4>Dr. Carvalho</h4>
+                            <span class="cargo">Médico Chefe</span>
+                            <p>Especialista em Pokémon do tipo Planta</p>
+                        </div>
+                        <div class="equipe-member">
+                            <div class="equipe-avatar">👩‍⚕️</div>
+                            <h4>Enf. Joy</h4>
+                            <span class="cargo">Enfermeira</span>
+                            <p>Cuidados gerais e primeiros socorros</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!--
+                @block      Timer de Oferta
+                @purpose    Elemento promocional com animação simples
+                -->
+                <div class="oferta-timer">
+                    <h4>OFERTA ESPECIAL!</h4>
+                    <div class="timer-display">02:15:33</div>
+                    <p>Cura gratuita para Pokémon do tipo Água</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2024 Centro Pokémon. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- @scripts   JavaScript externo para animações -->
+    <script src="/js/animacoes.js"></script>
+</body>
+</html>
