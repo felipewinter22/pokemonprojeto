@@ -68,6 +68,14 @@ public interface PokemonRepository extends JpaRepository<Pokemon, Integer> {
     long countByTreinadorId(Integer treinadorId);
 
     /**
+     * Busca por ID do Pokémon restrito ao treinador.
+     * @param id identificador do Pokémon
+     * @param treinadorId identificador do treinador
+     * @return Optional com o Pokémon, se encontrado
+     */
+    Optional<Pokemon> findByIdAndTreinadorId(Integer id, Integer treinadorId);
+
+    /**
      * Alias em português para findByNomeEnIgnoreCase.
      * @param nomeEn nome do Pokémon em inglês
      * @return Optional com o Pokémon, se encontrado

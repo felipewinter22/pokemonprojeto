@@ -3,8 +3,8 @@
  * ---------------------------------------
  * @file        PokedexController.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
- * @version     1.1
- * @date        2025-11-17
+ * @version     1.2
+ * @date        2025-11-18
  * @description Controlador responsável pelos endpoints da Pokédex via API (Não implementado ainda).
  */
 
@@ -22,7 +22,7 @@ import com.centropokemon.model.Pokemon;
  */
 @RestController
 @CrossOrigin(origins = "http://localhost:8080")
-@RequestMapping("/api/pokemons")
+@RequestMapping("/CentroPokemon/api/pokemons")
 public class PokedexController {
 
     private final PokedexService service;
@@ -43,6 +43,24 @@ public class PokedexController {
         Pokemon pokemon = service.buscarPokemonPorNome(nome);
         if (pokemon == null) {
             throw new PokemonNotFoundException("Pokémon não encontrado: " + nome);
+        }
+        return ResponseEntity.ok(pokemon);
+    }
+
+    @GetMapping("/random")
+    public ResponseEntity<Pokemon> aleatorio() {
+        Pokemon pokemon = service.buscarPokemonAleatorio();
+        if (pokemon == null) {
+            throw new PokemonNotFoundException("Pokémon aleatório não disponível");
+        }
+        return ResponseEntity.ok(pokemon);
+    }
+
+    @GetMapping("/type/{type}/random")
+    public ResponseEntity<Pokemon> aleatorioPorTipo(@PathVariable String type) {
+        Pokemon pokemon = service.buscarPokemonAleatorioPorTipo(type);
+        if (pokemon == null) {
+            throw new PokemonNotFoundException("Nenhum Pokémon disponível para o tipo: " + type);
         }
         return ResponseEntity.ok(pokemon);
     }

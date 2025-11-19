@@ -45,9 +45,9 @@ public class Treinador {
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    /** Hash da senha do treinador (nunca armazenar senha em claro). */
-    @Column(name = "senha_hash", nullable = false)
-    private String senhaHash;
+    /** Senha do treinador. */
+    @Column(name = "senha", nullable = false)
+    private String senha;
 
     /** Telefone de contato do treinador (opcional). */
     @Column(name = "telefone")
@@ -108,10 +108,10 @@ public class Treinador {
     /** @param email e-mail do treinador */
     public void setEmail(String email) { this.email = email; }
 
-    /** @return hash da senha */
-    public String getSenhaHash() { return senhaHash; }
-    /** @param senhaHash hash da senha */
-    public void setSenhaHash(String senhaHash) { this.senhaHash = senhaHash; }
+    /** @return senha do treinador */
+    public String getSenha() { return senha; }
+    /** @param senha senha do treinador */
+    public void setSenha(String senha) { this.senha = senha; }
 
     /** @return telefone de contato */
     public String getTelefone() { return telefone; }

@@ -41,7 +41,7 @@ public class Pokemon {
     private String nomeEn;
 
     /** Identificador do Pokémon na PokeAPI. */
-    @Column(name = "pokeapi_id", unique = true)
+    @Column(name = "pokeapi_id")
     private Integer pokeApiId;
 
     /** URL ou caminho para a imagem do Pokémon. */
@@ -272,4 +272,3 @@ public class Pokemon {
         return vidaAtual < vidaMaxima;
     }
 }
-

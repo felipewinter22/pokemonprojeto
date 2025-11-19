@@ -41,6 +41,7 @@ import java.util.Optional;
 public class DataInicializacao {
 
     private static final String API_BASE = "https://pokeapi.co/api/v2";
+    private static final int TOTAL_POKEMON = 898;
     
 
     /**
@@ -134,6 +135,28 @@ public class DataInicializacao {
 
         Pokemon salvo = salvarOuAtualizarPokemon(pokemon);
         return salvo;
+    }
+
+    public Pokemon carregarPokemonAleatorio() {
+        int id = (int) (Math.random() * TOTAL_POKEMON) + 1;
+        return carregarPokemon(String.valueOf(id));
+    }
+
+    public Pokemon carregarPokemonAleatorioPorTipo(String type) {
+        JsonNode typeNode = getTypeNode(type);
+        if (typeNode == null) {
+            return null;
+        }
+        JsonNode list = typeNode.path("pokemon");
+        if (!list.isArray() || list.isEmpty()) {
+            return null;
+        }
+        int idx = (int) (Math.random() * list.size());
+        JsonNode entry = list.get(idx).path("pokemon");
+        String url = entry.path("url").asText();
+        String[] parts = url.split("/");
+        String idStr = parts[parts.length - 1].isBlank() ? parts[parts.length - 2] : parts[parts.length - 1];
+        return carregarPokemon(idStr);
     }
 
     private final RestTemplate http;
@@ -334,6 +357,16 @@ public class DataInicializacao {
     private JsonNode getPokemonNode(String nomeOuId) {
         try {
             String url = API_BASE + "/pokemon/" + nomeOuId.toLowerCase();
+            String body = http.getForObject(url, String.class);
+            return mapper.readTree(body);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private JsonNode getTypeNode(String type) {
+        try {
+            String url = API_BASE + "/type/" + type.toLowerCase();
             String body = http.getForObject(url, String.class);
             return mapper.readTree(body);
         } catch (Exception e) {
