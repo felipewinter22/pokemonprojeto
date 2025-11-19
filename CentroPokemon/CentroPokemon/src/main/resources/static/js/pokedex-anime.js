@@ -7,12 +7,14 @@
  */
 const PokedexAnime = (() => {
     const config = {
-        apiBaseUrl: '/api/pokemons',
+        apiBaseUrl: '/CentroPokemon/api/pokemons',
         totalPokemon: 898,
         localStorageKey: 'pokedex_anime_stats',
         defaultPokemon: 25,
         searchCountsKey: 'pokedex_anime_search_counts',
-        recentKey: 'pokedex_anime_recent'
+        recentKey: 'pokedex_anime_recent',
+        trainerApiBaseUrl: '/CentroPokemon/api/treinadores',
+        trainerIdKey: 'treinador_id'
     };
 
     let state = {
@@ -172,8 +174,26 @@ const PokedexAnime = (() => {
             `).join('');
         }
     };
-    const renderCapturedGrid = () => {
+    const renderCapturedGrid = async () => {
         if (!elements.capturedGrid) return;
+        const trainerId = localStorage.getItem(config.trainerIdKey);
+        if (trainerId) {
+            try {
+                const res = await fetch(`${config.trainerApiBaseUrl}/${trainerId}/pokemons`);
+                if (res.ok) {
+                    const lista = await res.json();
+                    const items = lista.slice(-12).reverse();
+                    elements.capturedGrid.innerHTML = items.map((p) => {
+                        const id = p.pokeApiId || p.id;
+                        const sprite = p.spriteUrl || (id ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png` : '');
+                        return `<div class="sprite-item"><img src="${sprite}" alt="#${String(id||0).padStart(3,'0')}"></div>`;
+                    }).join('');
+                    state.caughtPokemon = new Set(lista.map(p => p.pokeApiId || p.id).filter(Boolean));
+                    updateStatsDisplay();
+                    return;
+                }
+            } catch {}
+        }
         const ids = Array.from(state.caughtPokemon).slice(-12).reverse();
         elements.capturedGrid.innerHTML = ids.map((id) => {
             const url = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
@@ -191,6 +211,51 @@ const PokedexAnime = (() => {
         const res = await fetch(url);
         if (!res.ok) throw new Error('Erro na requisição');
         return res.json();
+    };
+
+    const postJson = async (url, body) => {
+        const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        if (!res.ok) throw new Error('Erro na requisição');
+        return res.json();
+    };
+
+    const loginTrainer = async (usuarioOuEmail, senha) => {
+        const data = await postJson(`${config.trainerApiBaseUrl}/login`, { usuarioOuEmail, senha });
+        return data;
+    };
+
+    const registerTrainer = async (nome, usuario, email, senha, telefone) => {
+        const data = await postJson(`${config.trainerApiBaseUrl}/cadastrar`, { nome, usuario, email, senha, telefone });
+        return data;
+    };
+
+    const ensureTrainerId = async () => {
+        const cached = localStorage.getItem(config.trainerIdKey);
+        if (cached) return parseInt(cached, 10);
+        let usuarioOuEmail = window.prompt('Digite usuário ou e-mail do treinador:');
+        let senha = window.prompt('Digite a senha:');
+        if (!usuarioOuEmail || !senha) return null;
+        try {
+            const t = await loginTrainer(usuarioOuEmail, senha);
+            if (t && t.id) {
+                localStorage.setItem(config.trainerIdKey, String(t.id));
+                showNotification('Login realizado');
+                return t.id;
+            }
+        } catch {}
+        const nome = window.prompt('Não encontrado. Informe seu nome para cadastrar:');
+        const usuario = window.prompt('Escolha um nome de usuário:') || usuarioOuEmail;
+        const email = window.prompt('Informe seu e-mail:') || usuarioOuEmail;
+        if (!nome || !usuario || !email) return null;
+        try {
+            const t = await registerTrainer(nome, usuario, email, senha, null);
+            if (t && t.id) {
+                localStorage.setItem(config.trainerIdKey, String(t.id));
+                showNotification('Cadastro realizado');
+                return t.id;
+            }
+        } catch {}
+        return null;
     };
 
     /**
@@ -316,17 +381,37 @@ const PokedexAnime = (() => {
         updateLightsAnimation();
     };
 
-    const registerPokemon = () => {
+    const registerPokemon = async () => {
         if (!state.currentPokemon) {
             showError('Nenhum Pokémon para cadastrar!');
             return;
         }
-        state.caughtPokemon.add(state.currentPokemonId);
-        updateStatsDisplay();
-        saveStats();
-        showNotification(`🎉 ${elements.pokemonName.textContent} cadastrado!`);
-        bumpMission('register_1', 1);
-        renderCapturedGrid();
+        const trainerId = await ensureTrainerId();
+        if (!trainerId) {
+            showError('Não foi possível autenticar o treinador');
+            return;
+        }
+        const p = state.currentPokemon;
+        const id = p.pokeApiId || p.id || null;
+        const sprite = p.spriteUrl || (id ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png` : '');
+        try {
+            await postJson(`${config.trainerApiBaseUrl}/${trainerId}/pokemons`, {
+                pokeApiId: id,
+                nomePt: p.nomePt || '',
+                nomeEn: p.nomeEn || '',
+                spriteUrl: sprite,
+                vidaAtual: 100,
+                vidaMaxima: 100
+            });
+            state.caughtPokemon.add(id);
+            updateStatsDisplay();
+            saveStats();
+            showNotification(`🎉 ${elements.pokemonName.textContent} cadastrado!`);
+            bumpMission('register_1', 1);
+            renderCapturedGrid();
+        } catch {
+            showError('Falha ao cadastrar Pokémon');
+        }
     };
 
     const handleTypeFilter = (type) => {

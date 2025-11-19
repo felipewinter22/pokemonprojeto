@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<!--
+@file        pokedex-anime.html
+@summary     Página da Pokédex (Estilo Anime Clássico)
+@description Interface principal da Pokédex. Integra com API do backend
+             para buscar dados dos Pokémon e persiste estatísticas em
+             localStorage.
+@css         /css/novo-style.css, /css/pokedex-anime.css
+@js          /js/pokedex-anime.js
+@api         GET /api/pokemons/{id|nome}, /api/pokemons/random,
+             /api/pokemons/type/{tipo}/random
+@storage     pokedex_anime_stats, pokedex_anime_search_counts,
+             pokedex_anime_recent, pokedex_anime_daily
+-->
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokédex - Estilo Anime Clássico</title>
+    <link rel="stylesheet" href="/css/novo-style.css">
+    <link rel="stylesheet" href="/css/pokedex-anime.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!--
+    @section    Header
+    @purpose    Cabeçalho padrão do site com navegação principal
+    @links      Início, Pokédex, Centro de Cura, Sobre
+    -->
+    <header>
+        <div class="header-content">
+            <h1>Centro Pokémon</h1>
+            <nav>
+                <ul>
+                    <li><a href="/Pokemon.html">Início</a></li>
+                    <li><a href="/pokedex-anime.html" class="active">Pokédex</a></li>
+                    <li><a href="/cadastro.html">Cadastro</a></li>
+                    <li><a href="/Pokemon.html#centro">Centro de Cura</a></li>
+                    <li><a href="/Pokemon.html#sobre">Sobre</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <!--
+    @section    Layout
+    @grid       3 colunas (esquerda, conteúdo, direita)
+    @left       Coleção capturada + dica do professor
+    @right      Tipos, mais pesquisados, estatísticas, recentes, missões
+    -->
+    <div class="pokedex-page">
+        <!--
+        @region     Sidebar Esquerda
+        @content    Coleção capturada (sprites) + Dica do Professor
+        -->
+        <aside class="pokedex-left">
+            <div class="sidebar-section">
+                <h3>Coleção capturada</h3>
+                <div id="captured-grid" class="sprite-grid"></div>
+            </div>
+            <div class="sidebar-section">
+                <h3>Dica do Professor</h3>
+                <div id="tip-card" class="tip-card"></div>
+            </div>
+        </aside>
+        <!--
+        @region     Conteúdo Principal
+        @parts      Tela superior (dados do Pokémon) + parte inferior (controles)
+        -->
+        <div class="pokedex-container">
+        <!-- TELA SUPERIOR (como no anime) -->
+        <div class="pokedex-top">
+            <!--
+            @component  Tela da Pokédex
+            @shows      Número, nome, sprite, tipos, altura, peso, habilidade,
+                        descrição, luzes de estado
+            -->
+            <div class="pokedex-screen">
+                <div class="screen-header">
+                    <div class="pokemon-number" id="pokemon-number">#025</div>
+                    <div class="pokemon-name" id="pokemon-name">PIKACHU</div>
+                </div>
+                
+                <div class="screen-content">
+                    <div class="pokemon-image">
+                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" 
+                             alt="Pikachu" id="pokemon-sprite">
+                    </div>
+                    
+                    <div class="pokemon-info">
+                        <div class="info-row">
+                            <span class="label">TIPO:</span>
+                            <span class="value" id="pokemon-types">ELÉTRICO</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">ALTURA:</span>
+                            <span class="value" id="pokemon-height">0.4m</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">PESO:</span>
+                            <span class="value" id="pokemon-weight">6.0kg</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">HABILIDADE:</span>
+                            <span class="value" id="pokemon-ability">ESTÁTICA</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="screen-footer">
+                    <div class="description" id="pokemon-description">
+                        Quando vários desses Pokémon se reúnem, sua eletricidade pode construir e causar tempestades.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="pokedex-lights">
+                <div class="light red"></div>
+                <div class="light blue"></div>
+                <div class="light green"></div>
+            </div>
+        </div>
+        
+        <!-- PARTE INFERIOR COM CONTROLES -->
+            <!--
+            @component  Controles
+            @includes   Busca, navegação, aleatório, limpar, cadastrar
+            -->
+            <div class="pokedex-bottom">
+            <!-- SISTEMA DE BUSCA -->
+            <div class="search-section">
+                <div class="search-input">
+                    <input type="text" id="pokemon-search" placeholder="DIGITE NOME OU NÚMERO" maxlength="20">
+                    <button id="search-btn" class="pokedex-btn red">
+                        <span class="btn-icon">🔍</span>
+                        BUSCAR
+                    </button>
+                </div>
+            </div>
+            
+            <!-- CONTROLES PRINCIPAIS -->
+            <div class="controls-section">
+                <div class="control-row">
+                    <button id="prev-btn" class="pokedex-btn blue">
+                        <span class="btn-icon">⬅️</span>
+                        ANTERIOR
+                    </button>
+                    <button id="next-btn" class="pokedex-btn blue">
+                        <span class="btn-icon">➡️</span>
+                        PRÓXIMO
+                    </button>
+                </div>
+                
+                <div class="control-row">
+                    <button id="random-btn" class="pokedex-btn yellow">
+                        <span class="btn-icon">🎲</span>
+                        ALEATÓRIO
+                    </button>
+                    <button id="clear-btn" class="pokedex-btn yellow">
+                        <span class="btn-icon">🧹</span>
+                        LIMPAR
+                    </button>
+                </div>
+                
+                <div class="control-row">
+                    <button id="register-btn" class="pokedex-btn green">
+                        <span class="btn-icon">📝</span>
+                        CADASTRAR
+                    </button>
+                </div>
+            </div>
+            
+            
+            
+            
+        </div>
+        
+            <!-- HINGES (dobradiças como no anime) -->
+            <div class="pokedex-hinge left"></div>
+            <div class="pokedex-hinge right"></div>
+        </div>
+        <!--
+        @region     Sidebar Direita
+        @content    Mais pesquisados, Tipos (mosaico), Estatísticas, Recentes,
+                    Missões diárias
+        -->
+        <aside class="pokedex-sidebar">
+            <div class="sidebar-section">
+                <h3>Mais pesquisados</h3>
+                <ol id="popular-list" class="popular-list"></ol>
+            </div>
+            <div class="sidebar-section">
+                <h3>Tipos</h3>
+                <div class="type-mosaic">
+                    <button class="type-chip normal" data-type="normal">Normal</button>
+                    <button class="type-chip fire" data-type="fire">Fogo</button>
+                    <button class="type-chip water" data-type="water">Água</button>
+                    <button class="type-chip electric" data-type="electric">Elétrico</button>
+                    <button class="type-chip grass" data-type="grass">Planta</button>
+                    <button class="type-chip ice" data-type="ice">Gelo</button>
+                    <button class="type-chip fighting" data-type="fighting">Lutador</button>
+                    <button class="type-chip poison" data-type="poison">Veneno</button>
+                    <button class="type-chip ground" data-type="ground">Terra</button>
+                    <button class="type-chip flying" data-type="flying">Voador</button>
+                    <button class="type-chip psychic" data-type="psychic">Psíquico</button>
+                    <button class="type-chip bug" data-type="bug">Inseto</button>
+                    <button class="type-chip rock" data-type="rock">Pedra</button>
+                    <button class="type-chip ghost" data-type="ghost">Fantasma</button>
+                    <button class="type-chip dragon" data-type="dragon">Dragão</button>
+                    <button class="type-chip dark" data-type="dark">Trevas</button>
+                    <button class="type-chip steel" data-type="steel">Metal</button>
+                    <button class="type-chip fairy" data-type="fairy">Fada</button>
+                </div>
+            </div>
+            <div class="sidebar-section">
+                <h3>Estatísticas</h3>
+                <div class="stats-section">
+                    <div class="stat-item">
+                        <span class="stat-number" id="total-pokemon">898</span>
+                        <span class="stat-label">Pokémon</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="viewed-pokemon">0</span>
+                        <span class="stat-label">Vistos</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="caught-pokemon">0</span>
+                        <span class="stat-label">Cadastrados</span>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-section">
+                <h3>Vistos recentemente</h3>
+                <ul id="recent-list" class="recent-list"></ul>
+            </div>
+            <div class="sidebar-section">
+                <h3>Missões diárias</h3>
+                <ul id="daily-list" class="daily-list"></ul>
+            </div>
+        </aside>
+    </div>
+    
+    <!-- JAVASCRIPT -->
+    <!--
+    @scripts
+    @file   /js/pokedex-anime.js
+    @notes  Inicializa UI, integra com API, gerencia estado e localStorage
+    -->
+    <script src="/js/pokedex-anime.js"></script>
+</body>
+</html>

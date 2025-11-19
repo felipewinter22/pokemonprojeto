@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro de Treinador - Centro Pokémon</title>
+    <link rel="stylesheet" href="/css/novo-style.css" />
+    <link rel="stylesheet" href="/css/pokedex-anime.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+    <script>
+        const API_BASE = '/CentroPokemon/api/treinadores';
+        const TRAINER_ID_KEY = 'treinador_id';
+
+        async function postJson(url, body) {
+            const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            if (!res.ok) throw new Error('Erro na requisição');
+            return res.json();
+        }
+
+        async function handleCadastro(e) {
+            e.preventDefault();
+            const form = e.target.closest('form');
+            const nome = form.nome.value.trim();
+            const usuario = form.usuario.value.trim();
+            const email = form.email.value.trim();
+            const senha = form.senha.value.trim();
+            const telefone = form.telefone.value.trim();
+            const alertBox = document.getElementById('alert');
+            alertBox.className = 'alert';
+            alertBox.textContent = '';
+            if (!nome || !usuario || !email || !senha) {
+                alertBox.classList.add('error');
+                alertBox.textContent = 'Preencha todos os campos obrigatórios';
+                return;
+            }
+            try {
+                const t = await postJson(`${API_BASE}/cadastrar`, { nome, usuario, email, senha, telefone });
+                if (t && t.id) {
+                    localStorage.setItem(TRAINER_ID_KEY, String(t.id));
+                    alertBox.classList.add('success');
+                    alertBox.textContent = 'Cadastro realizado com sucesso! Redirecionando...';
+                    setTimeout(() => { window.location.href = '/pokedex-anime.html'; }, 1200);
+                } else {
+                    alertBox.classList.add('error');
+                    alertBox.textContent = 'Não foi possível concluir o cadastro';
+                }
+            } catch (err) {
+                alertBox.classList.add('error');
+                alertBox.textContent = 'Usuário ou e-mail já cadastrados ou erro no servidor';
+            }
+        }
+
+        function init() {
+            const form = document.getElementById('cadastro-form');
+            form.addEventListener('submit', handleCadastro);
+            const existing = localStorage.getItem(TRAINER_ID_KEY);
+            if (existing) {
+                const alertBox = document.getElementById('alert');
+                alertBox.classList.add('success');
+                alertBox.textContent = 'Você já está cadastrado. Acesse a Pokédex para cadastrar seus Pokémon.';
+            }
+            const nome = document.getElementById('nome');
+            const usuario = document.getElementById('usuario');
+            const email = document.getElementById('email');
+            const previewNome = document.getElementById('preview-nome');
+            const previewUsuario = document.getElementById('preview-usuario');
+            const previewEmail = document.getElementById('preview-email');
+            const onUpdate = () => {
+                if (previewNome) previewNome.textContent = (nome.value || '------').toUpperCase();
+                if (previewUsuario) previewUsuario.textContent = (usuario.value || '------').toUpperCase();
+                if (previewEmail) previewEmail.textContent = (email.value || '------').toUpperCase();
+            };
+            nome.addEventListener('input', onUpdate);
+            usuario.addEventListener('input', onUpdate);
+            email.addEventListener('input', onUpdate);
+        }
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</head>
+<body class="cadastro-page">
+    <header>
+        <div class="header-content">
+            <h1>Centro Pokémon</h1>
+            <nav>
+                <ul>
+                    <li><a href="/Pokemon.html">Início</a></li>
+                    <li><a href="/pokedex-anime.html">Pokédex</a></li>
+                    <li><a href="/Pokemon.html#centro">Centro de Cura</a></li>
+                    <li><a href="/Pokemon.html#sobre">Sobre</a></li>
+                    <li><a href="/cadastro.html" class="active">Cadastro</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="pokedex-page">
+            <div class="pokedex-container">
+                <div class="pokedex-top">
+                    <div class="pokedex-screen">
+                        <div class="screen-header">
+                            <div class="pokemon-number">#000</div>
+                            <div class="pokemon-name">CADASTRO</div>
+                        </div>
+                        <div class="screen-content">
+                            <div class="pokemon-image">
+                                <img src="/imagens/pokebola.png" alt="Pokébola">
+                            </div>
+                            <div class="pokemon-info">
+                                <div class="info-row">
+                                    <span class="label">TREINADOR:</span>
+                                    <span class="value" id="preview-nome">------</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">USUÁRIO:</span>
+                                    <span class="value" id="preview-usuario">------</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">E-MAIL:</span>
+                                    <span class="value" id="preview-email">------</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="screen-footer">
+                            <div class="description" id="screen-description">Preencha os dados abaixo para iniciar sua jornada.</div>
+                        </div>
+                    </div>
+                    <div class="pokedex-lights">
+                        <div class="light red"></div>
+                        <div class="light blue"></div>
+                        <div class="light green"></div>
+                    </div>
+                </div>
+                <div class="pokedex-bottom">
+                    <form id="cadastro-form" class="cadastro-form">
+                        <div>
+                            <label for="nome">Nome completo*</label>
+                            <input type="text" id="nome" name="nome" required />
+                        </div>
+                        <div>
+                            <label for="usuario">Usuário*</label>
+                            <input type="text" id="usuario" name="usuario" required />
+                        </div>
+                        <div>
+                            <label for="email">E-mail*</label>
+                            <input type="email" id="email" name="email" required />
+                        </div>
+                        <div>
+                            <label for="senha">Senha*</label>
+                            <input type="password" id="senha" name="senha" required />
+                        </div>
+                        <div>
+                            <label for="telefone">Telefone</label>
+                            <input type="tel" id="telefone" name="telefone" />
+                        </div>
+                        <div class="controls-section">
+                            <div class="control-row">
+                                <button type="submit" class="pokedex-btn green">Cadastrar</button>
+                                <a class="pokedex-btn blue" href="/pokedex-anime.html"><span class="btn-icon">📖</span> Pokédex</a>
+                            </div>
+                            <div id="alert" class="alert"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="pokedex-hinge left"></div>
+                <div class="pokedex-hinge right"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2024 Centro Pokémon. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+</body>
+</html>
