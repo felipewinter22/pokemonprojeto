@@ -1,12 +1,12 @@
 /*
- 
-Centro Pokémon - Repositório de Tipos
----------------------------------------
-@file        TipoRepository.java
-@author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
-@version     1.0
-@date        2025-11-17
-@description Interface de repositório JPA para operações de persistência de Tipos.*/
+ * Centro Pokémon - Repositório de Tipos
+ * ---------------------------------------
+ * @file        TipoRepository.java
+ * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
+ * @version     1.0
+ * @date        2025-11-17
+ * @description Interface de repositório JPA para operações de persistência de Tipos.
+ */
 
 package com.centropokemon.repository;
 

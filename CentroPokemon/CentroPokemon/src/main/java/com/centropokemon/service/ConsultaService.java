@@ -1,3 +1,13 @@
+/*
+ * Centro Pokémon - Serviço de Consultas
+ * ---------------------------------------
+ * @file        ConsultaService.java
+ * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
+ * @version     1.0
+ * @date        2025-11-19
+ * @description Regras de domínio para agendamento e listagem de consultas
+ *              médicas dos Pokémon de um treinador.
+ */
 package com.centropokemon.service;
 
 import com.centropokemon.model.Consulta;

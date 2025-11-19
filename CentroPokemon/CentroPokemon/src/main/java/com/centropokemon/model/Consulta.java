@@ -1,3 +1,13 @@
+/*
+ * Centro Pokémon - Entidade Consulta
+ * ---------------------------------------
+ * @file        Consulta.java
+ * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
+ * @version     1.0
+ * @date        2025-11-19
+ * @description Entidade JPA que representa uma consulta médica agendada
+ *              para um Pokémon de um treinador.
+ */
 package com.centropokemon.model;
 
 import jakarta.persistence.*;

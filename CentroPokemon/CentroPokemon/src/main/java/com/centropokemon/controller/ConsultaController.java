@@ -1,3 +1,13 @@
+/*
+ * Centro Pokémon - Controlador de Consultas
+ * ---------------------------------------
+ * @file        ConsultaController.java
+ * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
+ * @version     1.0
+ * @date        2025-11-19
+ * @description Endpoints REST para agendar e listar consultas médicas dos
+ *              Pokémon de um treinador.
+ */
 package com.centropokemon.controller;
 
 import com.centropokemon.model.Consulta;

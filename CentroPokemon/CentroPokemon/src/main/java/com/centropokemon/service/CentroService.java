@@ -1,3 +1,13 @@
+/*
+ * Centro Pokémon - Serviço do Centro de Cura
+ * ---------------------------------------
+ * @file        CentroService.java
+ * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
+ * @version     1.0
+ * @date        2025-11-19
+ * @description Regras de domínio para tratar Pokémon do treinador:
+ *              curar um, curar todos, verificar necessidade e contagens.
+ */
 package com.centropokemon.service;
 
 import com.centropokemon.model.Pokemon;

@@ -2,8 +2,11 @@
  * @file        animacoes.js
  * @summary     Animações e interações leves do Centro Pokémon
  * @description Timer de oferta, efeitos nos botões, navegação ativa,
- *              partículas decorativas e transições de páginas.
+ *              partículas decorativas e transições entre seções da landing.
  * @selectors   .timer-display, .quick-btn, nav a, .pagina, .pagina-content
+ * @nav         Links sem hash fazem navegação real (pathname). Com hash
+ *              alternam seções (#inicio, #centro, #sobre) sem recarregar.
+ * @active      Determina link ativo e seção pela URL atual (pathname/hash).
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -36,9 +39,24 @@ document.addEventListener('DOMContentLoaded', function() {
     var navLinks = document.querySelectorAll('nav a');
     navLinks.forEach(function(link) {
         link.addEventListener('click', function(e) {
-            e.preventDefault();
-            navLinks.forEach(function(l){ l.classList.remove('active'); });
-            link.classList.add('active');
+            var href = link.getAttribute('href') || '';
+            var isHashOnly = href.startsWith('#');
+            var hasHash = href.indexOf('#') > -1;
+            if (isHashOnly || hasHash) {
+                e.preventDefault();
+                navLinks.forEach(function(l){ l.classList.remove('active'); });
+                link.classList.add('active');
+                var targetId = isHashOnly ? href.substring(1) : href.split('#')[1];
+                if (targetId) {
+                    var targetEl = document.getElementById(targetId);
+                    if (targetEl) {
+                        pages.forEach(function(page) { page.classList.remove('ativa'); });
+                        targetEl.classList.add('ativa');
+                    }
+                }
+            } else {
+                window.location.assign(href);
+            }
         });
     });
 
@@ -77,11 +95,43 @@ document.addEventListener('DOMContentLoaded', function() {
         // Connect navigation to page switching
         navLinks.forEach(function(link) {
             link.addEventListener('click', function() {
-                var targetPage = this.getAttribute('href').substring(1);
-                if (targetPage) {
-                    showPage(targetPage);
+                var href = this.getAttribute('href') || '';
+                if (href.startsWith('#')) {
+                    var targetPage = href.substring(1);
+                    if (targetPage) {
+                        showPage(targetPage);
+                    }
+                } else if (href.indexOf('#') > -1) {
+                    var targetPage2 = href.split('#')[1];
+                    if (targetPage2) {
+                        showPage(targetPage2);
+                    }
                 }
             });
         });
+
+        var initialTarget = null;
+        if (window.location.hash && window.location.hash.length > 1) {
+            initialTarget = window.location.hash.substring(1);
+        } else {
+            var path = window.location.pathname || '';
+            if (path.endsWith('/centro')) initialTarget = 'centro';
+            else if (path.endsWith('/sobre')) initialTarget = 'sobre';
+            else initialTarget = 'inicio';
+        }
+        var initialEl = initialTarget && document.getElementById(initialTarget);
+        if (initialEl) {
+            pages.forEach(function(page) { page.classList.remove('ativa'); });
+            initialEl.classList.add('ativa');
+        }
+
+        var path = window.location.pathname || '';
+        navLinks.forEach(function(l){ l.classList.remove('active'); });
+        var targetHref = '/Pokemon.html';
+        if (path.endsWith('/pokedex')) targetHref = '/pokedex';
+        else if (path.endsWith('/centro')) targetHref = '/centro';
+        else if (path.endsWith('/sobre')) targetHref = '/sobre';
+        var activeLink = Array.from(navLinks).find(function(a){ return (a.getAttribute('href')||'') === targetHref; });
+        if (activeLink) activeLink.classList.add('active');
     }
 });

@@ -2,7 +2,9 @@
  * @file        pokedex-anime.js
  * @summary     Lógica da Pokédex estilo anime
  * @description Controla busca, navegação, filtros, estado e integração com a API.
- * @api         GET /api/pokemons/{id|nome}, /random, /type/{tipo}/random
+ * @api         GET /CentroPokemon/api/pokemons/{id|nome},
+ *              GET /CentroPokemon/api/pokemons/random,
+ *              GET /CentroPokemon/api/pokemons/type/{tipo}/random
  * @storage     pokedex_anime_stats, pokedex_anime_search_counts, pokedex_anime_recent
  */
 const PokedexAnime = (() => {
