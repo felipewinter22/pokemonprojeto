@@ -118,7 +118,10 @@
                 nomeEn: (draft && draft.nomeEn) || result.nome,
                 spriteUrl: result.img,
                 vidaAtual: 100,
-                vidaMaxima: 100
+                vidaMaxima: 100,
+                nivel: result.nivel,
+                habilidades: result.habilidades ? result.habilidades.split(',').map(s => s.trim()).filter(Boolean) : [],
+                tipos: result.tipos
             };
             const submitBtn = root.querySelector('#submit-btn');
             submitBtn.disabled = true;

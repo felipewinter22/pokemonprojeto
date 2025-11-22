@@ -81,6 +81,16 @@ public class Pokemon {
     @JsonBackReference("treinador-pokemon")
     private Treinador treinador;
 
+    /** Nível do Pokémon. */
+    @Column(name = "nivel", nullable = false)
+    private Integer nivel = 1;
+
+    /** Lista de habilidades do Pokémon. */
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "pokemon_habilidades", joinColumns = @JoinColumn(name = "pokemon_id"))
+    @Column(name = "habilidade", nullable = false)
+    private List<String> habilidades = new ArrayList<>();
+
     /**
      * Construtor padrão. Cria um Pokémon com vida inicial e máxima iguais a 100.
      */
@@ -223,6 +233,12 @@ public class Pokemon {
     public List<Tipo> getTipos() {
         return tipos;
     }
+
+    public Integer getNivel() { return nivel; }
+    public void setNivel(Integer nivel) { this.nivel = nivel; }
+
+    public List<String> getHabilidades() { return habilidades; }
+    public void setHabilidades(List<String> habilidades) { this.habilidades = habilidades; }
 
     /**
      * Define a lista de tipos do Pokémon.

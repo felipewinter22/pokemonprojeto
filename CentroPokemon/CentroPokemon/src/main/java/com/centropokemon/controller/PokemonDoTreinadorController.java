@@ -44,6 +44,9 @@ public class PokemonDoTreinadorController {
         public String spriteUrl;
         public Integer vidaAtual;
         public Integer vidaMaxima;
+        public Integer nivel;
+        public List<String> habilidades;
+        public List<String> tipos;
     }
 
     /**
@@ -57,6 +60,10 @@ public class PokemonDoTreinadorController {
         public String spriteUrl;
         public Integer vidaAtual;
         public Integer vidaMaxima;
+        public Integer nivel;
+        public List<String> habilidades;
+        public List<String> tipos;
+        public String message;
 
         public static PokemonResponse of(Pokemon p) {
             PokemonResponse r = new PokemonResponse();
@@ -67,6 +74,9 @@ public class PokemonDoTreinadorController {
             r.spriteUrl = p.getSpriteUrl();
             r.vidaAtual = p.getVidaAtual();
             r.vidaMaxima = p.getVidaMaxima();
+            r.nivel = p.getNivel();
+            r.habilidades = p.getHabilidades();
+            r.tipos = p.getTipos() != null ? p.getTipos().stream().map(t -> t.getNomePt()).toList() : List.of();
             return r;
         }
     }
@@ -76,22 +86,46 @@ public class PokemonDoTreinadorController {
      * Cadastra um Pokémon para o treinador.
      */
     @PostMapping
-    public ResponseEntity<PokemonResponse> cadastrar(@PathVariable Integer treinadorId,
-                                                     @RequestBody CadastroPokemonRequest req) {
-        // Validação de campos obrigatórios
-        if (req == null || req.nomePt == null || req.nomeEn == null || req.spriteUrl == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    public ResponseEntity<?> cadastrar(@PathVariable Integer treinadorId,
+                                       @RequestBody CadastroPokemonRequest req) {
+        if (req == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payload ausente");
         }
-        Pokemon saved;
+        if (req.nomePt == null || req.nomePt.trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Nome é obrigatório");
+        }
+        if (req.spriteUrl == null || !req.spriteUrl.trim().toLowerCase().startsWith("http")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Imagem inválida");
+        }
+        if (req.tipos == null || req.tipos.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Selecione ao menos um tipo");
+        }
         try {
-            saved = cadastro.cadastrar(treinadorId, req.pokeApiId, req.nomePt, req.nomeEn, req.spriteUrl, req.vidaAtual, req.vidaMaxima);
+            Pokemon saved = cadastro.cadastrarCompleto(
+                    treinadorId,
+                    req.pokeApiId,
+                    req.nomePt,
+                    req.nomeEn,
+                    req.spriteUrl,
+                    req.vidaAtual,
+                    req.vidaMaxima,
+                    req.nivel,
+                    req.habilidades,
+                    req.tipos
+            );
+            PokemonResponse out = PokemonResponse.of(saved);
+            out.message = "Pokémon cadastrado com sucesso";
+            return ResponseEntity.status(HttpStatus.CREATED).body(out);
         } catch (IllegalArgumentException e) {
-            if (e.getMessage().contains("Treinador não encontrado")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            String msg = e.getMessage();
+            if (msg != null && msg.toLowerCase().contains("treinador")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Treinador não encontrado");
             }
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            if (msg != null && msg.toLowerCase().contains("duplicado")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Pokémon já cadastrado");
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(msg != null ? msg : "Dados inválidos");
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(PokemonResponse.of(saved));
     }
 
     /**
