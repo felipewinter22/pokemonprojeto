@@ -54,6 +54,11 @@ public class SiteController {
         return "forward:/pokedex-anime.html";
     }
 
+    @GetMapping({"/pokedex/cadastrar"})
+    public String pokedexCadastrar() {
+        return "forward:/cadastro-pokemon.html";
+    }
+
     /**
      * Página de login.
      *

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Pokémon</title>
+    <link rel="stylesheet" href="/css/novo-style.css">
+    <link rel="stylesheet" href="/css/pokedex-anime.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        .page-enter { opacity: 0; }
+        .page-enter-active { opacity: 1; transition: opacity .3s ease; }
+        .page-leave { opacity: 1; }
+        .page-leave-active { opacity: 0; transition: opacity .3s ease; }
+        .type-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: .5rem; }
+        .type-option { display: inline-flex; align-items: center; gap: .4rem; padding: .5rem .6rem; border: 2px solid var(--pokemon-blue); border-radius: 8px; background: var(--pokemon-white); cursor: pointer; font-size: .65rem; }
+        .type-option.active { background: var(--pokemon-yellow); }
+        .form-grid { display: grid; gap: .8rem; }
+        .img-preview { width: 120px; height: 120px; border: 3px solid var(--pokemon-black); border-radius: 10px; object-fit: contain; image-rendering: pixelated; background: #fff; }
+        .actions { display: flex; gap: .6rem; }
+    </style>
+    <script>
+        const TRAINER_ID_KEY = 'treinador_id';
+        const REGISTER_DRAFT_KEY = 'pokedex_register_draft';
+        const REGISTER_SUCCESS_KEY = 'pokedex_register_success';
+        const STATS_KEY = 'pokedex_anime_stats';
+        const API_BASE = '/CentroPokemon/api/treinadores';
+
+        function setAlert(el, type, text) {
+            el.className = 'alert';
+            if (!text) { el.textContent = ''; return; }
+            el.classList.add(type);
+            el.textContent = text;
+        }
+
+        function readDraft() {
+            try { return JSON.parse(localStorage.getItem(REGISTER_DRAFT_KEY) || 'null'); } catch { return null; }
+        }
+
+        function saveStatsCaught(pokeId) {
+            try {
+                const stats = JSON.parse(localStorage.getItem(STATS_KEY) || '{}');
+                const caught = new Set(stats.caught || []);
+                if (pokeId) caught.add(pokeId);
+                stats.caught = Array.from(caught);
+                stats.lastUpdated = new Date().toISOString();
+                localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+            } catch {}
+        }
+
+        async function postJson(url, body) {
+            const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            if (!res.ok) throw new Error(String(res.status));
+            return res.json();
+        }
+
+        function initTypes(root) {
+            const types = ['normal','fire','water','electric','grass','ice','fighting','poison','ground','flying','psychic','bug','rock','ghost','dragon','dark','steel','fairy'];
+            const grid = root.querySelector('#type-grid');
+            grid.innerHTML = '';
+            types.forEach(t => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'type-option';
+                btn.dataset.type = t;
+                btn.textContent = t.charAt(0).toUpperCase() + t.slice(1);
+                btn.addEventListener('click', () => { btn.classList.toggle('active'); });
+                grid.appendChild(btn);
+            });
+        }
+
+        function prefillForm(root, draft) {
+            if (!draft) return;
+            const nomeField = root.querySelector('#nome');
+            const nivelField = root.querySelector('#nivel');
+            const habilidadesField = root.querySelector('#habilidades');
+            const imgField = root.querySelector('#imagem');
+            const preview = root.querySelector('#img-preview');
+            const typeBtns = root.querySelectorAll('.type-option');
+            const tipos = Array.isArray(draft.tipos) ? draft.tipos.map(t => (t.nomeEn || t.nomePt || t.nome || '').toLowerCase()) : [];
+            if (nomeField) nomeField.value = draft.nomePt || draft.nomeEn || '';
+            if (nivelField) nivelField.value = 1;
+            if (habilidadesField) habilidadesField.value = '';
+            const id = draft.pokeApiId || draft.id || null;
+            const sprite = draft.spriteUrl || (id ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png` : '');
+            if (imgField) imgField.value = sprite;
+            if (preview) preview.src = sprite;
+            typeBtns.forEach(btn => { if (tipos.includes(btn.dataset.type)) btn.classList.add('active'); });
+        }
+
+        function validateForm(root) {
+            const alertEl = root.querySelector('#alert');
+            const nome = root.querySelector('#nome').value.trim();
+            const nivel = parseInt(root.querySelector('#nivel').value, 10);
+            const img = root.querySelector('#imagem').value.trim();
+            const tiposSel = Array.from(root.querySelectorAll('.type-option.active')).map(b => b.dataset.type);
+            if (!nome) { setAlert(alertEl, 'error', 'Informe o nome do Pokémon'); return false; }
+            if (!tiposSel.length) { setAlert(alertEl, 'error', 'Selecione pelo menos um tipo'); return false; }
+            if (!Number.isFinite(nivel) || nivel < 1) { setAlert(alertEl, 'error', 'Informe um nível válido (>=1)'); return false; }
+            if (!img || !/^https?:\/\//i.test(img)) { setAlert(alertEl, 'error', 'Informe uma URL de imagem válida'); return false; }
+            setAlert(alertEl, '', '');
+            return { nome, nivel, img, tipos: tiposSel, habilidades: root.querySelector('#habilidades').value.trim() };
+        }
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+            const root = e.target.closest('form').ownerDocument;
+            const result = validateForm(root);
+            if (!result) return;
+            const trainerId = localStorage.getItem(TRAINER_ID_KEY);
+            const alertEl = root.querySelector('#alert');
+            if (!trainerId) { setAlert(alertEl, 'error', 'Faça login para cadastrar'); return; }
+            const draft = readDraft();
+            const id = draft && (draft.pokeApiId || draft.id) || null;
+            const body = {
+                pokeApiId: id,
+                nomePt: result.nome,
+                nomeEn: (draft && draft.nomeEn) || result.nome,
+                spriteUrl: result.img,
+                vidaAtual: 100,
+                vidaMaxima: 100
+            };
+            const submitBtn = root.querySelector('#submit-btn');
+            submitBtn.disabled = true;
+            try {
+                await postJson(`${API_BASE}/${trainerId}/pokemons`, body);
+                saveStatsCaught(id);
+                localStorage.setItem(REGISTER_SUCCESS_KEY, JSON.stringify({ name: result.nome, id }));
+                document.body.classList.add('page-leave');
+                document.body.classList.add('page-leave-active');
+                setTimeout(() => { window.location.href = '/pokedex'; }, 250);
+            } catch (err) {
+                setAlert(alertEl, 'error', 'Falha ao cadastrar Pokémon');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        }
+
+        function init() {
+            document.body.classList.add('page-enter');
+            setTimeout(() => { document.body.classList.add('page-enter-active'); }, 0);
+            initTypes(document);
+            const draft = readDraft();
+            prefillForm(document, draft);
+            const form = document.getElementById('cadastro-pokemon-form');
+            form.addEventListener('submit', handleSubmit);
+            const img = document.getElementById('imagem');
+            const preview = document.getElementById('img-preview');
+            img.addEventListener('input', () => { preview.src = img.value.trim(); });
+        }
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</head>
+<body class="cadastro-page">
+    <header>
+        <div class="auth-links auth-top-right">
+            <a href="/cadastro.html">Cadastro</a>
+            <a href="/login.html">Login</a>
+        </div>
+        <div class="header-content header-stacked">
+            <h1>Centro Pokémon</h1>
+            <nav>
+                <ul>
+                    <li><a href="/Pokemon.html#inicio">Início</a></li>
+                    <li><a href="/pokedex" class="active">Pokédex</a></li>
+                    <li><a href="/centro#centro">Centro de Cura</a></li>
+                    <li><a href="/sobre#sobre">Sobre</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <section class="cadastro-container">
+            <h2>Cadastrar Pokémon</h2>
+            <form id="cadastro-pokemon-form" class="form-grid">
+                <div>
+                    <label>Nome do Pokémon</label>
+                    <input id="nome" type="text" required />
+                </div>
+                <div>
+                    <label>Tipo(s)</label>
+                    <div id="type-grid" class="type-grid"></div>
+                </div>
+                <div>
+                    <label>Nível</label>
+                    <input id="nivel" type="number" min="1" value="1" required />
+                </div>
+                <div>
+                    <label>Habilidades</label>
+                    <input id="habilidades" type="text" placeholder="Separar por vírgulas" />
+                </div>
+                <div>
+                    <label>Imagem/Avatar (URL)</label>
+                    <div class="actions">
+                        <input id="imagem" type="url" required style="flex:1" />
+                        <img id="img-preview" class="img-preview" alt="Preview" />
+                    </div>
+                </div>
+                <div class="actions">
+                    <button id="submit-btn" type="submit" class="btn primary">Cadastrar</button>
+                    <a href="/pokedex" class="btn secondary">Voltar</a>
+                </div>
+                <div id="alert" class="alert" role="alert"></div>
+            </form>
+        </section>
+    </main>
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2024 Centro Pokémon. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+</body>
+</html>

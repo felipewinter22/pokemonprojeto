@@ -384,36 +384,15 @@ const PokedexAnime = (() => {
     };
 
     const registerPokemon = async () => {
-        if (!state.currentPokemon) {
-            showError('Nenhum Pokémon para cadastrar!');
-            return;
-        }
+        if (!state.currentPokemon) { showError('Nenhum Pokémon para cadastrar!'); return; }
         const trainerId = await ensureTrainerId();
-        if (!trainerId) {
-            showError('Não foi possível autenticar o treinador');
-            return;
-        }
-        const p = state.currentPokemon;
-        const id = p.pokeApiId || p.id || null;
-        const sprite = p.spriteUrl || (id ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png` : '');
+        if (!trainerId) { showError('Não foi possível autenticar o treinador'); return; }
         try {
-            await postJson(`${config.trainerApiBaseUrl}/${trainerId}/pokemons`, {
-                pokeApiId: id,
-                nomePt: p.nomePt || '',
-                nomeEn: p.nomeEn || '',
-                spriteUrl: sprite,
-                vidaAtual: 100,
-                vidaMaxima: 100
-            });
-            state.caughtPokemon.add(id);
-            updateStatsDisplay();
-            saveStats();
-            showNotification(`🎉 ${elements.pokemonName.textContent} cadastrado!`);
-            bumpMission('register_1', 1);
-            renderCapturedGrid();
-        } catch {
-            showError('Falha ao cadastrar Pokémon');
-        }
+            localStorage.setItem('pokedex_register_draft', JSON.stringify(state.currentPokemon));
+        } catch {}
+        document.body.classList.add('page-leave');
+        document.body.classList.add('page-leave-active');
+        setTimeout(() => { window.location.href = '/pokedex/cadastrar'; }, 200);
     };
 
     const handleTypeFilter = (type) => {
@@ -511,6 +490,14 @@ const PokedexAnime = (() => {
 })();
 
 document.addEventListener('DOMContentLoaded', () => { try { generateDailyMissions(); } catch {} PokedexAnime.init(); });
+
+try {
+    const success = JSON.parse(localStorage.getItem('pokedex_register_success') || 'null');
+    if (success && success.name) {
+        localStorage.removeItem('pokedex_register_success');
+        setTimeout(() => { try { PokedexAnime && PokedexAnime.init && showNotification(`🎉 ${success.name} cadastrado!`); } catch {} }, 300);
+    }
+} catch {}
 
 const tipMessages = [
     'Dica: use filtros por tipo para descobrir novos!',
