@@ -1,162 +1,112 @@
-# 🏥 CentroPokemon - Sistema de Gestão de Saúde Pokémon
+# 🏥 Centro Pokémon — Aplicação Web com Pokédex e Centro de Cura
 
 ![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=java&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-F2F4F9?style=for-the-badge&logo=spring-boot)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Visual Paradigm](https://img.shields.io/badge/Visual_Paradigm-FF6F00?style=for-the-badge&logo=visual-paradigm&logoColor=white)
 
-Sistema completo para gestão de centros de saúde Pokémon, desenvolvido em Java com Spring Boot.
+Um projeto Spring Boot com páginas estáticas e API REST para gerenciar treinadores, seus Pokémon e consultas médicas. Interface inspirada no anime, com Pokédex interativa e uma página inicial com “TV da Sala de Espera”.
 
-## 📊 Diagramas do Sistema
+## 🔗 Acesse localmente
 
-### 📁 Estrutura de Diagramas
-diagrams/
-├── Activity Diagram1.png # Fluxo de atividades do sistema
-├── Class Diagram1.png # Diagrama de classes UML
-├── Sequence Diagram1.png # Diagrama de sequência
-├── Use Case Diagram1.png # Casos de uso
-└── Estados de saúde do Pokémon.png # Diagrama de estados
+- Home: http://localhost:8081/Pokemon.html
+- Pokédex (anime): http://localhost:8081/pokedex-anime.html
+- Pokédex (rota resumida): http://localhost:8081/pokedex
+- Cadastro de Treinador: http://localhost:8081/cadastro.html
+- Login: http://localhost:8081/login.html
 
-text
+Observação: a porta padrão é 8081. Você pode alterar com --server.port=8090 ao executar o .jar.
 
-### 🗂️ Arquivos Originais
-sources/
-└── CentroPokemon.vpp # Projeto original Visual Paradigm
+## ✨ O que já está funcionando
 
-text
+- Pokédex com busca por nome/ID, aleatório e filtro por tipo.
+- Sprites com fallback automático entre múltiplas fontes quando um URL falha (inclui tratamento para erro 429 do GitHub).
+- Erros visuais da Pokédex silenciados para uma experiência mais limpa.
+- Cadastro de Treinador com escolha de iniciais e imagens estáticas locais para Bulbasaur, Charmander e Squirtle.
+- Agendamento e listagem de consultas por treinador.
 
-## 🚀 Funcionalidades
+## 🗺️ Navegação e páginas
 
-- **Gestão de Pokémon** - Cadastro e controle de Pokémon pacientes
-- **Sistema de Saúde** - Acompanhamento de estados de saúde
-- **Tratamento Automatizado** - Fluxos de cura e recuperação
-- **API REST** - Endpoints para integração
-- **Banco de Dados** - Persistência com MySQL
+- Pokemon.html: landing com estatísticas, destaque do dia e TV.
+- pokedex-anime.html / pokedex: interface da Pokédex.
+- cadastro.html: cadastro de treinadores com seleção de inicial.
+- login.html: autenticação do treinador.
 
-## 🏗️ Arquitetura
+Assets estáticos ficam em CentroPokemon/CentroPokemon/src/main/resources/static/:
+- Imagens: /imagens/bulbasauro.png, /imagens/charmander.png, /imagens/squirtle.png, etc.
+- Vídeos: /videos/EP 001 - Pokémon Eu Escolho Você!.mkv.
 
-### Tecnologias Utilizadas
-- **Backend**: Java + Spring Boot
-- **Banco de Dados**: MySQL
-- **ORM**: Spring Data JPA
-- **Documentação**: Diagramas UML com Visual Paradigm
-- **Controle de Versão**: Git + GitHub
+Nota de compatibilidade: alguns navegadores não reproduzem .mkv. Se necessário, adicione também um .mp4 como fallback em Pokemon.html.
 
-### Estrutura do Projeto
-CentroPokemon/
-├── src/
-│ └── main/java/ # Código fonte Java
-├── db/
-│ └── schema.sql # Esquema do banco de dados
-├── diagrams/ # Documentação UML
-├── sources/ # Arquivos originais
-└── docs/ # Documentação adicional
+## 🧰 Tecnologias
 
-text
+- Java 21, Spring Boot 3.3.x
+- Spring Web, Spring Data JPA, Validation
+- Banco de dados: PostgreSQL
+- Maven Wrapper (mvnw / mvnw.cmd)
 
-## 📋 Pré-requisitos
+##   Como rodar
 
-- Java 17 ou superior
-- MySQL 8.0+
-- Maven 3.6+
-- Visual Paradigm (para edição dos diagramas)
-
-## 🔧 Instalação e Configuração
-
-1. **Clone o repositório**
-```bash
-git clone https://github.com/felipewinter22/centropokemon.git
-cd centropokemon
-Configure o banco de dados
+1) Com Maven Wrapper (Windows):
 
 bash
-# Execute o script schema.sql no MySQL
-mysql -u root -p < db/schema.sql
-Configure as variáveis de ambiente
+./mvnw.cmd spring-boot:run
 
-properties
-# application.properties
-spring.datasource.url=jdbc:mysql://localhost:3306/centropokemon
-spring.datasource.username=seu_usuario
-spring.datasource.password=sua_senha
-Execute a aplicação
+
+2) Com .jar:
 
 bash
-mvn spring-boot:run
-🎯 Endpoints Principais
-Método	Endpoint	Descrição
-GET	/api/pokemons	Lista todos os Pokémon
-POST	/api/pokemons	Cadastra novo Pokémon
-PUT	/api/pokemons/{id}/tratar	Aplica tratamento
-GET	/api/pokemons/{id}/estado	Consulta estado de saúde
-📊 Modelo de Dados
-Entidades Principais
-Pokemon: Dados básicos do Pokémon
+mvn -q package -DskipTests
+java -jar CentroPokemon/CentroPokemon/target/CentroPokemon-0.0.1-SNAPSHOT.jar --server.port=8081
 
-Tratamento: Histórico de tratamentos
 
-EstadoSaude: Controle de estados de saúde
+Configuração de banco no application.properties:
 
-Centro: Informações do centro Pokémon
 
-🗺️ Fluxo do Sistema
-Cadastro → Pokémon é registrado no sistema
+spring.datasource.url=jdbc:postgresql://localhost:5432/centro_pokemon
+spring.datasource.username=<usuario>
+spring.datasource.password=<senha>
+spring.jpa.hibernate.ddl-auto=update
 
-Avaliação → Estado de saúde é diagnosticado
 
-Tratamento → Fluxo de cura é aplicado
+## 📡 API REST
 
-Monitoramento → Evolução é acompanhada
+Base: /CentroPokemon/api
 
-Alta → Pokémon é liberado quando curado
+- Treinadores (/treinadores)
+  - POST /cadastrar — cadastra treinador (nome, usuário, email, senha, telefone opcional). Pode receber starterId, starterName, starterSpriteUrl.
+  - POST /login — autentica por usuário ou e-mail.
 
-👥 Desenvolvimento
-Equipe
-Desenvolvedor: Matheus Schvan
+- Pokémon do Treinador (/treinadores/{id}/pokemons)
+  - POST / — cadastra Pokémon do treinador.
+  - GET / — lista Pokémon do treinador.
+  - DELETE /{pokemonId} — remove Pokémon do treinador.
 
-Diagramação: Visual Paradigm Community Edition
+- Consultas (/treinadores/{id}/consultas)
+  - POST / — agenda consulta (tipo, dataHora, observações, pokemonId).
+  - GET / — lista consultas do treinador.
 
-Metodologia
-Desenvolvimento Ágil
+- Pokédex (/pokemons)
+  - GET /{nome} — busca por nome (EN).
+  - GET /id/{id} — busca por ID.
+  - GET /random — Pokémon aleatório.
+  - GET /type/{type}/random — aleatório por tipo.
 
-Versionamento com Git
+## 🖼️ Diagramas
 
-Documentação com UML
+- [Use Case](diagrams/Use%20Case%20Diagram1.png)
+- [Sequence](diagrams/Sequence%20Diagram1.png)
+- [Class](diagrams/Class%20Diagram1.png)
+- [Activity](diagrams/Activity%20Diagram1.png)
+- [Estados de saúde do Pokémon](diagrams/Estados%20de%20sa%C3%BAde%20do%20Pok%C3%A9mon.png)
 
-Code Review
+Projeto visual original: [sources/CentroPokemon.vpp](sources/CentroPokemon.vpp)
 
-📝 Licença
-Este projeto é para fins educacionais e não comerciais, desenvolvido com Visual Paradigm Community Edition.
+## 🤝 Contribuições
 
-🤝 Contribuições
-Contribuições são bem-vindas! Por favor:
+- Abra uma issue com sugestão ou bug.
+- Faça um fork e envie um Pull Request com uma explicação clara.
 
-Fork o projeto
+##   Notas finais
 
-Crie uma branch para sua feature
-
-Commit suas mudanças
-
-Push para a branch
-
-Abra um Pull Request
-
-📞 Contato
-GitHub: felipewinter22
-
-Repositório: CentroPokemon
-
-Desenvolvido com ❤️ para a comunidade Pokémon
-
-text
-
-### **4. Commit Corretamente:**
-- **Mensagem do commit:** `"docs: adiciona README profissional completo"`
-- **Clique:** `"Commit new file"`
-
-## 🎯 **Dicas para Não Dar Erro:**
-- **Copie TODO o texto acima** de uma vez
-- **Cole TODO de uma vez** no GitHub
-- **Não edite** - já está formatado corretamente
-- **Use exatamente este conteúdo**
-
+Este projeto foi feito com carinho para estudar e celebrar o universo Pokémon. Se algo não funcionar no seu ambiente, me avise — a ideia é que a experiência seja simples e divertida.
