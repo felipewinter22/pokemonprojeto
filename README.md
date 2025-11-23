@@ -15,28 +15,24 @@ Um projeto Spring Boot com páginas estáticas e API REST para gerenciar treinad
 - Cadastro de Treinador: http://localhost:8081/cadastro.html
 - Login: http://localhost:8081/login.html
 
-Observação: a porta padrão é 8081. Você pode alterar com --server.port=8090 ao executar o .jar.
+## ✨ Do que consiste o centro e o que já está funcionando?
 
-## ✨ O que já está funcionando
-
-- Pokédex com busca por nome/ID, aleatório e filtro por tipo.
-- Sprites com fallback automático entre múltiplas fontes quando um URL falha (inclui tratamento para erro 429 do GitHub).
-- Erros visuais da Pokédex silenciados para uma experiência mais limpa.
-- Cadastro de Treinador com escolha de iniciais e imagens estáticas locais para Bulbasaur, Charmander e Squirtle.
+- Pokédex com busca por nome/ID, aleatório e filtro por tipo ( PokeAPIV2.
+- Telas de cadastro e login.
+- Integração com postgresql para salvamento das informações. 
 - Agendamento e listagem de consultas por treinador.
 
 ## 🗺️ Navegação e páginas
 
 - Pokemon.html: landing com estatísticas, destaque do dia e TV.
 - pokedex-anime.html / pokedex: interface da Pokédex.
+- centro.htm: Centro de atendimento / consultas
 - cadastro.html: cadastro de treinadores com seleção de inicial.
 - login.html: autenticação do treinador.
 
 Assets estáticos ficam em CentroPokemon/CentroPokemon/src/main/resources/static/:
 - Imagens: /imagens/bulbasauro.png, /imagens/charmander.png, /imagens/squirtle.png, etc.
 - Vídeos: /videos/EP 001 - Pokémon Eu Escolho Você!.mkv.
-
-Nota de compatibilidade: alguns navegadores não reproduzem .mkv. Se necessário, adicione também um .mp4 como fallback em Pokemon.html.
 
 ## 🧰 Tecnologias
 
@@ -102,11 +98,8 @@ Base: /CentroPokemon/api
 
 Projeto visual original: [sources/CentroPokemon.vpp](sources/CentroPokemon.vpp)
 
-## 🤝 Contribuições
-
-- Abra uma issue com sugestão ou bug.
-- Faça um fork e envie um Pull Request com uma explicação clara.
-
 ##   Notas finais
 
-Este projeto foi feito com carinho para estudar e celebrar o universo Pokémon. Se algo não funcionar no seu ambiente, me avise — a ideia é que a experiência seja simples e divertida.
+Este projeto foi feito com o intúito de servir como trabalho final de Programação, Engenharia de Software e Banco de dados. A ideia é que a experiência seja simples e divertida.
+
+Membros: Alexandre Lampert, Matheus Schvann, Gustavo Pigatto, Mateus Stock e Felipe Winter.
