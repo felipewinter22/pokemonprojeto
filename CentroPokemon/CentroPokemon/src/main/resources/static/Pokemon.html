@@ -14,6 +14,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Centro Pokémon - Página Básica</title>
     <link rel="stylesheet" href="/css/novo-style.css">
+    <link rel="stylesheet" href="/css/centro-cura.css">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -146,41 +147,54 @@
     <div class="pagina" id="centro">
         <h2>Centro de Cura</h2>
         <div class="pagina-content">
-            <div class="agendamento-container">
-                <div class="agendamento-form-card">
-                    <h3>Agendar Consulta</h3>
-                    <form id="agendar-consulta-form">
-                        <div class="form-row">
-                            <label for="pokemon-select">Pokémon</label>
-                            <select id="pokemon-select" required></select>
-                        </div>
-                        <div class="form-row">
-                            <label for="tipo-consulta">Tipo</label>
-                            <select id="tipo-consulta" required>
-                                <option value="CONSULTA">Consulta</option>
-                                <option value="VACINACAO">Vacinação</option>
-                                <option value="CHECKUP">Check-up</option>
-                            </select>
-                        </div>
-                        <div class="form-row">
-                            <label for="datahora-consulta">Data e Hora</label>
-                            <input id="datahora-consulta" type="datetime-local" required />
-                        </div>
-                        <div class="form-row">
-                            <label for="obs-consulta">Observações</label>
-                            <textarea id="obs-consulta" rows="3" placeholder="Opcional"></textarea>
-                        </div>
-                        <div class="agendar-actions">
-                            <button type="submit" class="btn primary">Agendar</button>
-                            <a href="#consultas-list" class="btn secondary">Ver agendamentos</a>
-                        </div>
-                        <div id="agendar-alert" class="alert" role="alert"></div>
-                    </form>
+            <div class="centro-layout">
+                <!-- Coluna Esquerda: Formulário de Agendamento -->
+                <div class="centro-left">
+                    <div class="agendamento-form-card">
+                        <h3>📅 Agendar Consulta</h3>
+                        <form id="agendar-consulta-form">
+                            <div class="form-row">
+                                <label for="pokemon-select">Pokémon</label>
+                                <select id="pokemon-select" required></select>
+                            </div>
+                            <div class="form-row">
+                                <label for="tipo-consulta">Tipo</label>
+                                <select id="tipo-consulta" required>
+                                    <option value="CONSULTA">Consulta</option>
+                                    <option value="VACINACAO">Vacinação</option>
+                                    <option value="CHECKUP">Check-up</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <label for="datahora-consulta">Data e Hora</label>
+                                <input id="datahora-consulta" type="datetime-local" required />
+                            </div>
+                            <div class="form-row">
+                                <label for="obs-consulta">Observações</label>
+                                <textarea id="obs-consulta" rows="3" placeholder="Opcional"></textarea>
+                            </div>
+                            <div class="agendar-actions">
+                                <button type="submit" class="btn primary">Agendar</button>
+                            </div>
+                            <div id="agendar-alert" class="alert" role="alert"></div>
+                        </form>
+                    </div>
                 </div>
 
-                <div class="agendadas-card" id="consultas-list">
-                    <h3>Consultas Agendadas</h3>
-                    <div class="consultas-grid" id="consultas-grid"></div>
+                <!-- Coluna Direita: Consultas Agendadas + Cura Rápida -->
+                <div class="centro-right">
+                    <!-- Consultas Agendadas -->
+                    <div class="agendadas-card">
+                        <h3>📋 Consultas Agendadas</h3>
+                        <div class="consultas-grid" id="consultas-grid"></div>
+                    </div>
+
+                    <!-- Cura Rápida -->
+                    <div class="cura-rapida-section">
+                        <h3>⚡ Cura Rápida</h3>
+                        <p style="color: #666; margin-bottom: 1rem; font-size: 0.85rem;">Clique na barrinha de vida para curar instantaneamente!</p>
+                        <div id="pokemon-cura-grid" class="pokemon-cura-grid"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -261,6 +275,8 @@
             return res.json();
         }
 
+        let pokemonsList = [];
+
         async function carregarPokemons() {
             if (!trainerId) {
                 pokemonSelect.innerHTML = '<option value="">Faça login para agendar</option>';
@@ -269,12 +285,50 @@
                 return;
             }
             const lista = await fetchJson(`${API_BASE_TREINADORES}/${trainerId}/pokemons`);
+            pokemonsList = lista;
             pokemonSelect.innerHTML = '';
             for (const p of lista) {
                 const opt = document.createElement('option');
                 opt.value = String(p.id);
                 opt.textContent = `${p.nomePt} (#${p.pokeApiId || p.id})`;
                 pokemonSelect.appendChild(opt);
+            }
+            renderCuraRapida(lista);
+        }
+
+        function renderCuraRapida(pokemons) {
+            const grid = document.getElementById('pokemon-cura-grid');
+            if (!grid) return;
+            if (!pokemons || pokemons.length === 0) {
+                grid.innerHTML = '<div class="empty" style="color: white;">Você ainda não tem Pokémon cadastrados.</div>';
+                return;
+            }
+            grid.innerHTML = '';
+            for (const p of pokemons) {
+                const card = document.createElement('div');
+                card.className = 'pokemon-cura-card';
+                const hpPercent = Math.round((p.vidaAtual / p.vidaMaxima) * 100);
+                const isCurado = hpPercent === 100;
+                card.innerHTML = `
+                    <img class="pokemon-cura-sprite" src="${p.spriteUrl}" alt="${p.nomePt}" onerror="this.src='/imagens/pokebola.png'" />
+                    <div class="pokemon-cura-nome">${p.nomePt}</div>
+                    <div class="hp-bar-container" data-pokemon-id="${p.id}" onclick="curarPokemon(${p.id})">
+                        <div class="hp-bar-fill" style="width: ${hpPercent}%"></div>
+                        <div class="hp-text">${p.vidaAtual}/${p.vidaMaxima} HP</div>
+                    </div>
+                    ${isCurado ? '<div class="curado-badge">✓ Curado</div>' : ''}
+                `;
+                grid.appendChild(card);
+            }
+        }
+
+        async function curarPokemon(pokemonId) {
+            if (!trainerId) return;
+            try {
+                await fetchJson(`${API_BASE_TREINADORES}/${trainerId}/pokemons/${pokemonId}/curar`, { method: 'POST' });
+                await carregarPokemons();
+            } catch (err) {
+                console.error('Erro ao curar:', err);
             }
         }
 

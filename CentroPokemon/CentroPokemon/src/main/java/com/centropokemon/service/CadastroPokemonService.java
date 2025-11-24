@@ -186,4 +186,19 @@ public class CadastroPokemonService {
         pokemons.delete(pOpt.get());
         return true;
     }
+
+    /**
+     * Cura um Pokémon, restaurando sua vida para o máximo.
+     * 
+     * @param treinadorId id do treinador
+     * @param pokemonId id do Pokémon a ser curado
+     * @return Pokémon curado
+     * @throws IllegalArgumentException se o Pokémon não for encontrado ou não pertencer ao treinador
+     */
+    public Pokemon curar(Integer treinadorId, Integer pokemonId) {
+        Pokemon p = pokemons.findByIdAndTreinadorId(pokemonId, treinadorId)
+                .orElseThrow(() -> new IllegalArgumentException("Pokémon não encontrado"));
+        p.tratar(); // Método que já existe no model Pokemon
+        return pokemons.save(p);
+    }
 }

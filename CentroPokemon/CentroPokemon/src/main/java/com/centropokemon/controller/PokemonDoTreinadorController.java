@@ -174,4 +174,22 @@ public class PokemonDoTreinadorController extends BaseRestController {
         boolean removido = cadastro.remover(treinadorId, pokemonId);
         return removido ? noContent() : notFound();
     }
+
+    /**
+     * Cura um Pokémon, restaurando sua vida para o máximo.
+     * Endpoint: POST /CentroPokemon/api/treinadores/{treinadorId}/pokemons/{pokemonId}/curar
+     * 
+     * @param treinadorId ID do treinador
+     * @param pokemonId ID do Pokémon a ser curado
+     * @return 200 OK com dados do Pokémon curado, 404 NOT FOUND se não encontrado
+     */
+    @PostMapping("/{pokemonId}/curar")
+    public ResponseEntity<PokemonResponse> curar(@PathVariable Integer treinadorId, @PathVariable Integer pokemonId) {
+        try {
+            Pokemon curado = cadastro.curar(treinadorId, pokemonId);
+            return ok(PokemonResponse.of(curado));
+        } catch (IllegalArgumentException e) {
+            return notFound();
+        }
+    }
 }

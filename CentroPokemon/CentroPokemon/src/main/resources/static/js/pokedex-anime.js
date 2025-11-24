@@ -467,14 +467,17 @@ const PokedexAnime = (() => {
             
             console.log('[Register] Sprite final:', sprite);
             
-            // Prepara os dados para cadastro
+            // Prepara os dados para cadastro com vida aleatória entre 50-100%
+            const vidaMaxima = 100;
+            const vidaAtual = Math.floor(Math.random() * 51) + 50; // 50 a 100
+            
             const body = {
                 pokeApiId: id,
                 nomePt: p.nomePt || p.nomeEn || '',
                 nomeEn: p.nomeEn || p.nomePt || '',
                 spriteUrl: sprite,
-                vidaAtual: 100,
-                vidaMaxima: 100,
+                vidaAtual: vidaAtual,
+                vidaMaxima: vidaMaxima,
                 nivel: 1,
                 habilidades: Array.isArray(p.habilidades) ? p.habilidades : [],
                 tipos: Array.isArray(p.tipos) ? p.tipos.map(t => t.nomeEn || t.nomePt || t.nome || '').filter(Boolean) : []
