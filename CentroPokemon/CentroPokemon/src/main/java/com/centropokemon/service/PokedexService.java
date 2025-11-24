@@ -50,15 +50,15 @@ public class PokedexService {
                 return porPt.get();
             }
         } catch (Exception ignored) {}
-        return dataInicializacao.montarPokemon(nome);
+        return dataInicializacao.carregarPokemon(nome);
     }
 
     public Pokemon buscarPokemonAleatorio() {
-        return dataInicializacao.montarPokemonAleatorio();
+        return dataInicializacao.carregarPokemonAleatorio();
     }
 
     public Pokemon buscarPokemonAleatorioPorTipo(String type) {
-        return dataInicializacao.montarPokemonAleatorioPorTipo(type);
+        return dataInicializacao.carregarPokemonAleatorioPorTipo(type);
     }
 
     public Pokemon buscarPokemonPorId(Integer id) {
@@ -68,6 +68,6 @@ public class PokedexService {
                 return porRepo.get();
             }
         } catch (Exception ignored) {}
-        return dataInicializacao.montarPokemon(String.valueOf(id));
+        return dataInicializacao.carregarPokemon(String.valueOf(id));
     }
 }

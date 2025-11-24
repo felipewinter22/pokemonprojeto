@@ -1,3 +1,12 @@
+<!--
+    Centro Pokémon - Página de Login
+    =================================
+    @file        login.html
+    @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
+    @version     1.1
+    @date        23/11/2025
+    @description Página de autenticação de treinadores no sistema Centro Pokémon.
+-->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -125,12 +134,24 @@
         </section>
     </main>
 
+    <!-- Script de Login -->
     <script>
+        /**
+         * @file        login-inline.js
+         * @description Script inline para autenticação de treinadores
+         * @date        23/11/2025
+         */
+        
         // Configurações da API
         const API_BASE = '/CentroPokemon/api/treinadores';
         const TRAINER_ID_KEY = 'treinador_id';
 
-        // Função utilitária para POST
+        /**
+         * Envia requisição POST com JSON
+         * @param {string} url - URL da API
+         * @param {Object} body - Corpo da requisição
+         * @returns {Promise<Object>} Resposta JSON
+         */
         async function postJson(url, body) {
             const res = await fetch(url, { 
                 method: 'POST', 
@@ -145,7 +166,9 @@
             return res.json();
         }
 
-        // Atualizar preview em tempo real
+        /**
+         * Atualiza preview do nome do treinador em tempo real
+         */
         function updatePreview() {
             const usuarioEmail = document.getElementById('usuario-email').value;
             const preview = document.getElementById('preview-treinador');
@@ -160,7 +183,10 @@
             }
         }
 
-        // Função de login
+        /**
+         * Processa o formulário de login
+         * @param {Event} e - Evento de submit do formulário
+         */
         async function handleLogin(e) {
             e.preventDefault();
             const form = e.target.closest('form');
@@ -208,7 +234,10 @@
             }
         }
 
-        // Inicialização
+        /**
+         * Inicializa a página de login
+         * Configura eventos e verifica se já está logado
+         */
         function init() {
             // Verificar se já está logado
             const existing = localStorage.getItem(TRAINER_ID_KEY);

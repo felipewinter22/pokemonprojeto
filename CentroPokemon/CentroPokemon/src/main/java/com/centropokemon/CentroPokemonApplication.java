@@ -3,9 +3,10 @@
  * ---------------------------------------
  * @file        CentroPokemonApplication.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
- * @version     1.0
- * @date        2025-11-11
- * @description Classe principal, responsável pela excução do código.
+ * @version     1.1
+ * @date        23/11/2025
+ * @description Classe principal, responsável pela execução do código.
+ *              Inicializa a aplicação Spring Boot do Centro Pokémon.
  */
 
 

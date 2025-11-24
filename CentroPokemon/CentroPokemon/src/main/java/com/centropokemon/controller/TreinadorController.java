@@ -4,8 +4,9 @@
  * @file        TreinadorController.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
  * @version     1.1
- * @date        2025-11-19
+ * @date        23/11/2025
  * @description Endpoints REST para cadastro e autenticação de Treinadores.
+ *              Suporta cadastro com Pokémon inicial (starter).
  */
 
 package com.centropokemon.controller;
@@ -22,10 +23,8 @@ import org.springframework.dao.DataIntegrityViolationException;
  * Controlador REST para o ciclo de vida do {@link Treinador}.
  * Exponde endpoints para cadastro e login.
  */
-@RestController
-@CrossOrigin(origins = "http://localhost:8080")
 @RequestMapping("/CentroPokemon/api/treinadores")
-public class TreinadorController {
+public class TreinadorController extends BaseRestController {
 
     private final TreinadorService service;
     private final CadastroPokemonService cadastroPokemon;
@@ -96,13 +95,13 @@ public class TreinadorController {
     public ResponseEntity<TreinadorResponse> cadastrar(@RequestBody CadastroRequest req) {
         if (req == null || req.nome == null || req.usuario == null || req.email == null || req.senha == null
                 || req.nome.isBlank() || req.usuario.isBlank() || req.email.isBlank() || req.senha.isBlank()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return badRequest();
         }
         Treinador t;
         try {
             t = service.cadastrar(req.nome, req.usuario, req.email, req.senha, req.telefone);
         } catch (IllegalArgumentException | DataIntegrityViolationException ex) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return conflict();
         }
         if (req.starterId != null && cadastroPokemon != null) {
             Integer id = req.starterId;
@@ -112,7 +111,7 @@ public class TreinadorController {
                 cadastroPokemon.cadastrar(t.getId(), id, name, name, sprite, null, null);
             } catch (IllegalArgumentException ignored) {}
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(TreinadorResponse.of(t));
+        return created(TreinadorResponse.of(t));
     }
 
     private String defaultStarterName(Integer id) {
@@ -125,9 +124,21 @@ public class TreinadorController {
         };
     }
 
+    /**
+     * Retorna a URL da imagem local do Pokémon inicial.
+     * Usa as imagens salvas localmente na pasta /imagens/.
+     * 
+     * @param id ID do Pokémon inicial (1=Bulbasaur, 4=Charmander, 7=Squirtle)
+     * @return URL local da imagem
+     */
     private String defaultSpriteUrl(Integer id) {
-        if (id == null) return "";
-        return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + id + ".png";
+        if (id == null) return "/imagens/pokebola.png";
+        return switch (id) {
+            case 1 -> "/imagens/bulbasauro.png";
+            case 4 -> "/imagens/charmander.png";
+            case 7 -> "/imagens/squirtle.png";
+            default -> "/imagens/pokebola.png";
+        };
     }
 
     /**
@@ -139,10 +150,10 @@ public class TreinadorController {
     @PostMapping("/login")
     public ResponseEntity<TreinadorResponse> login(@RequestBody LoginRequest req) {
         if (req == null || req.usuarioOuEmail == null || req.senha == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return badRequest();
         }
         return service.autenticar(req.usuarioOuEmail, req.senha)
-                .map(t -> ResponseEntity.ok(TreinadorResponse.of(t)))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+                .map(t -> ok(TreinadorResponse.of(t)))
+                .orElseGet(this::unauthorized);
     }
 }

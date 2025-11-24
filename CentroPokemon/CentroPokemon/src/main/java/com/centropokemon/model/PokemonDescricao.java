@@ -3,9 +3,10 @@
  * ---------------------------------------
  * @file        PokemonDescricao.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
- * @version     1.0
- * @date        2025-11-16
+ * @version     1.1
+ * @date        23/11/2025
  * @description Classe base representando a descrição do Pokémon puxada da API.
+ *              Suporta descrições em português e inglês.
  */
 
 /**

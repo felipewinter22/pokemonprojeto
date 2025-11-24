@@ -3,10 +3,10 @@
  * ---------------------------------------
  * @file        PokemonStats.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
- * @version     1.0
- * @date        2025-11-16
+ * @version     1.1
+ * @date        23/11/2025
  * @description Entidade JPA que representa os atributos de combate de um Pokémon.
- * Contém HP, Ataque, Defesa, Velocidade, Ataque Especial e Defesa Especial.
+ *              Contém HP, Ataque, Defesa, Velocidade, Ataque Especial e Defesa Especial.
  */
 
 package com.centropokemon.model;

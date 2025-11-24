@@ -3,39 +3,24 @@
  * ---------------------------------------
  * @file        CentroController.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
- * @version     1.1
- * @date        2025-11-19
- * @description Endpoints REST do Centro de Cura: curar, curar todos,
- *              checar necessidade de cura e status agregado.
+ * @version     1.2
+ * @date        23/11/2025
+ * @description Endpoints REST do Centro de Cura para Pokémon da coleção do treinador.
+ *              Permite curar individualmente, curar todos, verificar necessidade e status.
  */
 package com.centropokemon.controller;
 
 import com.centropokemon.model.Pokemon;
 import com.centropokemon.service.CentroService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Centro Pokémon - Controlador do Centro de Cura
- * ----------------------------------------------
- * Controlador REST responsável pelos endpoints do Centro de Cura
- * (curar, curar todos, checar necessidade de cura, status).
- *
- * Base: "/CentroPokemon/api/centro".
- *
- * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
- * @version     1.1
- * @since       1.0
- */
-@RestController
-@CrossOrigin(origins = "http://localhost:8080")
+
 @RequestMapping("/CentroPokemon/api/centro")
-public class CentroController {
+public class CentroController extends BaseRestController {
 
     private final CentroService centro;
 
@@ -48,70 +33,65 @@ public class CentroController {
     }
 
     /**
-     * Curar um Pokémon específico do treinador.
+     * Cura um Pokémon específico da coleção do treinador.
      * Endpoint: POST /treinadores/{treinadorId}/pokemons/{pokemonId}/curar
+     * 
+     * Restaura a vida do Pokémon ao máximo. Só funciona se o Pokémon
+     * realmente pertencer ao treinador.
      *
-     * @param treinadorId id do treinador
-     * @param pokemonId   id do Pokémon do treinador
-     * @return Pokémon atualizado em caso de sucesso; 404 se não pertence
+     * @param treinadorId ID do treinador
+     * @param pokemonId ID do Pokémon da coleção do treinador
+     * @return 200 OK com Pokémon curado, ou 404 NOT FOUND se não pertence ao treinador
      */
     @PostMapping("/treinadores/{treinadorId}/pokemons/{pokemonId}/curar")
     public ResponseEntity<Pokemon> curar(@PathVariable Integer treinadorId, @PathVariable Integer pokemonId) {
-        try {
-            Pokemon p = centro.curar(treinadorId, pokemonId);
-            return ResponseEntity.ok(p);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        return executeOperation(() -> centro.curar(treinadorId, pokemonId));
     }
 
     /**
-     * Curar todos os Pokémon do treinador.
+     * Cura todos os Pokémon da coleção do treinador.
      * Endpoint: POST /treinadores/{treinadorId}/pokemons/curar-todos
+     * 
+     * Restaura a vida de todos os Pokémon da coleção ao máximo.
+     * Útil para curar toda a equipe de uma vez.
      *
-     * @param treinadorId id do treinador
-     * @return lista de Pokémon atualizados
+     * @param treinadorId ID do treinador
+     * @return 200 OK com lista de todos os Pokémon curados
      */
     @PostMapping("/treinadores/{treinadorId}/pokemons/curar-todos")
     public ResponseEntity<List<Pokemon>> curarTodos(@PathVariable Integer treinadorId) {
-        List<Pokemon> lista = centro.curarTodos(treinadorId);
-        return ResponseEntity.ok(lista);
+        return ok(centro.curarTodos(treinadorId));
     }
 
     /**
-     * Checar se o Pokémon precisa de cura.
+     * Verifica se um Pokémon da coleção precisa de cura.
      * Endpoint: GET /treinadores/{treinadorId}/pokemons/{pokemonId}/precisa-curar
+     * 
+     * Retorna true se a vida atual do Pokémon está abaixo da vida máxima.
      *
-     * @param treinadorId id do treinador
-     * @param pokemonId   id do Pokémon do treinador
-     * @return mapa {"precisaCurar": true|false}; 404 se não pertence
+     * @param treinadorId ID do treinador
+     * @param pokemonId ID do Pokémon da coleção
+     * @return 200 OK com {"precisaCurar": true|false}, ou 404 NOT FOUND se não pertence
      */
     @GetMapping("/treinadores/{treinadorId}/pokemons/{pokemonId}/precisa-curar")
-    public ResponseEntity<Map<String, Boolean>> precisaCurar(@PathVariable Integer treinadorId, @PathVariable Integer pokemonId) {
-        try {
-            boolean precisa = centro.precisaCurar(treinadorId, pokemonId);
-            Map<String, Boolean> out = new HashMap<>();
-            out.put("precisaCurar", precisa);
-            return ResponseEntity.ok(out);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+    public ResponseEntity<Map<String, Object>> precisaCurar(@PathVariable Integer treinadorId, @PathVariable Integer pokemonId) {
+        return executeOperation(() -> mapOf("precisaCurar", centro.precisaCurar(treinadorId, pokemonId)));
     }
 
     /**
-     * Status agregado dos Pokémon do treinador.
+     * Obtém estatísticas da coleção de Pokémon do treinador.
      * Endpoint: GET /treinadores/{treinadorId}/status
+     * 
+     * Retorna o total de Pokémon na coleção e quantos precisam de cura.
+     * Útil para exibir resumo no dashboard do treinador.
      *
-     * @param treinadorId id do treinador
-     * @return mapa {"totalPokemons": N, "precisamCura": M}
+     * @param treinadorId ID do treinador
+     * @return 200 OK com {"totalPokemons": N, "precisamCura": M}
      */
     @GetMapping("/treinadores/{treinadorId}/status")
-    public ResponseEntity<Map<String, Long>> status(@PathVariable Integer treinadorId) {
+    public ResponseEntity<Map<String, Object>> status(@PathVariable Integer treinadorId) {
         long total = centro.contarPokemonsTreinador(treinadorId);
         long precisam = centro.contarPokemonsQuePrecisamCura(treinadorId);
-        Map<String, Long> out = new HashMap<>();
-        out.put("totalPokemons", total);
-        out.put("precisamCura", precisam);
-        return ResponseEntity.ok(out);
+        return ok(mapOf("totalPokemons", total, "precisamCura", precisam));
     }
 }

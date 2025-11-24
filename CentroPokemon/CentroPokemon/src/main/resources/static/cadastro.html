@@ -1,3 +1,13 @@
+<!--
+    Centro Pokémon - Página de Cadastro de Treinador
+    ================================================
+    @file        cadastro.html
+    @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
+    @version     1.1
+    @date        23/11/2025
+    @description Página de cadastro de novos treinadores no sistema Centro Pokémon.
+                 Permite registro com escolha de Pokémon inicial (starter).
+-->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -7,10 +17,24 @@
     <link rel="stylesheet" href="/css/novo-style.css" />
     <link rel="stylesheet" href="/css/pokedex-anime.css" />
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+    
+    <!-- Script de Cadastro de Treinador -->
     <script>
+        /**
+         * @file        cadastro-inline.js
+         * @description Script inline para gerenciar cadastro de treinadores
+         * @date        23/11/2025
+         */
+        // Configurações da API
         const API_BASE = '/CentroPokemon/api/treinadores';
         const TRAINER_ID_KEY = 'treinador_id';
 
+        /**
+         * Envia requisição POST com JSON
+         * @param {string} url - URL da API
+         * @param {Object} body - Corpo da requisição
+         * @returns {Promise<Object>} Resposta JSON
+         */
         async function postJson(url, body) {
             const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
             if (!res.ok) {
@@ -21,6 +45,10 @@
             return res.json();
         }
 
+        /**
+         * Processa o formulário de cadastro
+         * @param {Event} e - Evento de submit do formulário
+         */
         async function handleCadastro(e) {
             e.preventDefault();
             const form = e.target.closest('form');
@@ -41,7 +69,9 @@
                 const starterIdRaw = form.starterId ? form.starterId.value : '';
                 const starterId = starterIdRaw ? parseInt(starterIdRaw, 10) : null;
                 const starterName = form.starterName ? (form.starterName.value || null) : null;
-                const starterSpriteUrl = form.starterSpriteUrl ? (form.starterSpriteUrl.value || (starterId ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${starterId}.png` : null)) : null;
+                // Usa imagens locais para os starters
+                const starterImages = { 1: '/imagens/bulbasauro.png', 4: '/imagens/charmander.png', 7: '/imagens/squirtle.png' };
+                const starterSpriteUrl = form.starterSpriteUrl ? (form.starterSpriteUrl.value || (starterId ? starterImages[starterId] : null)) : null;
                 const t = await postJson(`${API_BASE}/cadastrar`, { nome, usuario, email, senha, telefone, starterId, starterName, starterSpriteUrl });
                 if (t && t.id) {
                     localStorage.setItem(TRAINER_ID_KEY, String(t.id));
@@ -62,6 +92,10 @@
             }
         }
 
+        /**
+         * Inicializa a página de cadastro
+         * Configura eventos e preview em tempo real
+         */
         function init() {
             const form = document.getElementById('cadastro-form');
             form.addEventListener('submit', handleCadastro);
@@ -93,13 +127,20 @@
                 el.classList.add('selected');
                 const id = el.dataset.id;
                 const name = el.dataset.name;
-                if (imageEl) imageEl.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+                // Mapeia IDs para imagens locais
+                const starterImages = {
+                    '1': '/imagens/bulbasauro.png',
+                    '4': '/imagens/charmander.png',
+                    '7': '/imagens/squirtle.png'
+                };
+                const spriteUrl = starterImages[id] || '/imagens/pokebola.png';
+                if (imageEl) imageEl.src = spriteUrl;
                 const hiddenId = document.getElementById('starter-id');
                 const hiddenName = document.getElementById('starter-name');
                 const hiddenSprite = document.getElementById('starter-sprite');
                 if (hiddenId) hiddenId.value = id;
                 if (hiddenName) hiddenName.value = name;
-                if (hiddenSprite) hiddenSprite.value = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+                if (hiddenSprite) hiddenSprite.value = spriteUrl;
                 if (descEl) descEl.textContent = `Inicial escolhido: ${name}`;
             };
             starters.forEach(el => el.addEventListener('click', () => setStarter(el)));
@@ -238,15 +279,15 @@
                     <h3>Escolha seu inicial</h3>
                     <div class="starter-picker">
                         <div class="starter" data-id="1" data-name="Bulbasaur">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" alt="Bulbasaur">
+                            <img src="/imagens/bulbasauro.png" alt="Bulbasaur">
                             <span>Bulbasaur</span>
                         </div>
                         <div class="starter" data-id="4" data-name="Charmander">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png" alt="Charmander">
+                            <img src="/imagens/charmander.png" alt="Charmander">
                             <span>Charmander</span>
                         </div>
                         <div class="starter" data-id="7" data-name="Squirtle">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png" alt="Squirtle">
+                            <img src="/imagens/squirtle.png" alt="Squirtle">
                             <span>Squirtle</span>
                         </div>
                     </div>
@@ -257,7 +298,7 @@
 
     <footer>
         <div class="footer-content">
-            <p>&copy; 2024 Centro Pokémon. Todos os direitos reservados.</p>
+            <p>&copy; 2025 Centro Pokémon. Todos os direitos reservados.</p>
         </div>
     </footer>
 </body>

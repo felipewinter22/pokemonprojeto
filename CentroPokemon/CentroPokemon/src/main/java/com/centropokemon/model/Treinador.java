@@ -3,8 +3,8 @@
  * ---------------------------------------
  * @file        Treinador.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
- * @version     1.0
- * @date        2025-11-18
+ * @version     1.3
+ * @date        23/11/2025
  * @description Entidade JPA que representa o treinador cadastrado no sistema.
  *              Suporta login por usuário/e-mail e associa Pokémon do treinador
  *              para futuras consultas, vacinações e tratamentos.

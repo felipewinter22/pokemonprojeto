@@ -1,11 +1,16 @@
 /*
-@file        pokedex-anime.css
-@summary     Estilo visual da Pokédex (anime clássico)
-@description Define cores, layout de 3 colunas, componentes da Pokédex,
-             sidebars e responsividade, mantendo estética retrô.
-@components  .pokedex-page, .pokedex-container, .pokedex-screen,
-             .pokedex-bottom, .pokedex-left, .pokedex-sidebar
-*/
+ * Centro Pokémon - Estilos da Pokédex
+ * ====================================
+ * @file        pokedex-anime.css
+ * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
+ * @version     1.1
+ * @date        23/11/2025
+ * @summary     Estilo visual da Pokédex (anime clássico)
+ * @description Define cores, layout de 3 colunas, componentes da Pokédex,
+ *              sidebars e responsividade, mantendo estética retrô.
+ * @components  .pokedex-page, .pokedex-container, .pokedex-screen,
+ *              .pokedex-bottom, .pokedex-left, .pokedex-sidebar
+ */
 /* POKÉDEX ANIME STYLE - Estética Visual Clássica do Anime Pokémon */
 /* Réplica fiel da Pokédex dos anos 90/2000 */
 

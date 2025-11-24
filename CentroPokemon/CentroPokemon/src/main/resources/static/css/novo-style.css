@@ -1,9 +1,14 @@
 /*
-@file        novo-style.css
-@summary     Estilo clássico anos 2010 do Centro Pokémon
-@description Réplica fiel de cabeçalho, navegação, páginas e efeitos visuais.
-@components  header/nav, main, .pagina, animações básicas.
-*/
+ * Centro Pokémon - Estilos Principais
+ * ====================================
+ * @file        novo-style.css
+ * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
+ * @version     1.1
+ * @date        23/11/2025
+ * @summary     Estilo clássico anos 2010 do Centro Pokémon
+ * @description Réplica fiel de cabeçalho, navegação, páginas e efeitos visuais.
+ * @components  header/nav, main, .pagina, animações básicas, formulários, cards.
+ */
 /* NOVO STYLE.CSS - Centro Pokémon - Estilo Clássico Anos 2010 */
 /* Mantendo a autêntica estética Pokémon dos anos 2010 */
 

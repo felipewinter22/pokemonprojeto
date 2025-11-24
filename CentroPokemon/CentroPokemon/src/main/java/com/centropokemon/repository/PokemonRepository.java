@@ -4,8 +4,9 @@
  * @file        PokemonRepository.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
  * @version     1.1
- * @date        2025-11-18
+ * @date        23/11/2025
  * @description Interface de repositório JPA para operações de persistência de Pokémon.
+ *              Inclui consultas por nome (PT/EN), PokeAPI ID e relacionamento com treinador.
  */
 
 package com.centropokemon.repository;

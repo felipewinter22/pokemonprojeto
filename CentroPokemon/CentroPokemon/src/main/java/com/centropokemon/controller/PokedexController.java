@@ -3,9 +3,9 @@
  * ---------------------------------------
  * @file        PokedexController.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
- * @version     1.2
- * @date        2025-11-18
- * @description Controlador responsável pelos endpoints da Pokédex via API (Não implementado ainda).
+ * @version     1.3
+ * @date        23/11/2025
+ * @description Controlador responsável pelos endpoints da Pokédex via API.
  */
 
 package com.centropokemon.controller;
@@ -21,9 +21,8 @@ import com.centropokemon.model.Pokemon;
  * Exponde endpoints para consulta de Pokémon via API.
  */
 @RestController
-@CrossOrigin(origins = "http://localhost:8080")
 @RequestMapping({"/CentroPokemon/api/pokemons", "/api/pokemons"})
-public class PokedexController {
+public class PokedexController extends BaseRestController {
 
     private final PokedexService service;
 
@@ -41,36 +40,24 @@ public class PokedexController {
     @GetMapping("/{nome}")
     public ResponseEntity<Pokemon> buscarPokemon(@PathVariable String nome) {
         Pokemon pokemon = service.buscarPokemonPorNome(nome);
-        if (pokemon == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(pokemon);
+        return pokemon != null ? ok(pokemon) : notFound();
     }
 
     @GetMapping("/random")
     public ResponseEntity<Pokemon> aleatorio() {
         Pokemon pokemon = service.buscarPokemonAleatorio();
-        if (pokemon == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(pokemon);
+        return pokemon != null ? ok(pokemon) : notFound();
     }
 
     @GetMapping("/type/{type}/random")
     public ResponseEntity<Pokemon> aleatorioPorTipo(@PathVariable String type) {
         Pokemon pokemon = service.buscarPokemonAleatorioPorTipo(type);
-        if (pokemon == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(pokemon);
+        return pokemon != null ? ok(pokemon) : notFound();
     }
 
     @GetMapping("/id/{id}")
     public ResponseEntity<Pokemon> buscarPorId(@PathVariable Integer id) {
         Pokemon pokemon = service.buscarPokemonPorId(id);
-        if (pokemon == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(pokemon);
+        return pokemon != null ? ok(pokemon) : notFound();
     }
 }

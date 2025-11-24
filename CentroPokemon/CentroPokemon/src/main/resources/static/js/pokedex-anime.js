@@ -1,5 +1,10 @@
 /**
+ * Centro Pokémon - Lógica da Pokédex
+ * ===================================
  * @file        pokedex-anime.js
+ * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
+ * @version     1.1
+ * @date        23/11/2025
  * @summary     Lógica da Pokédex estilo anime
  * @description Controla busca, navegação, filtros, estado e integração com a API.
  * @api         GET /CentroPokemon/api/pokemons/{id|nome},
@@ -282,7 +287,8 @@ const PokedexAnime = (() => {
             updateSidebar();
             renderCapturedGrid();
         } catch (error) {
-            showError('Pokémon não encontrado! Tente outro nome ou número.');
+            // Silencia erro visualmente - apenas limpa a tela
+            clearCurrentPokemon();
         } finally {
             state.isLoading = false;
             showLoadingState(false);
@@ -309,20 +315,29 @@ const PokedexAnime = (() => {
 
         elements.pokemonNumber.textContent = `#${String(id || 0).padStart(3, '0')}`;
         elements.pokemonName.textContent = name || '------';
+        
+        // Sistema de fallback para sprites com múltiplas fontes
         const tries = [];
         const idStr3 = String(id || 0).padStart(3, '0');
-        if (sprite && sprite.length) tries.push(sprite);
-        tries.push(`https://assets.pokemon.com/assets/cms2/img/pokedex/full/${idStr3}.png`);
         const nomeLower = (p.nomeEn || '').toLowerCase();
+        
+        // Ordem de prioridade das fontes de imagem
+        if (sprite && sprite.length && sprite.startsWith('http')) tries.push(sprite);
+        tries.push(`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`);
+        tries.push(`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`);
         if (nomeLower) tries.push(`https://img.pokemondb.net/artwork/large/${nomeLower}.jpg`);
-        tries.push(`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.pokeApiId || id}.png`);
+        tries.push(`https://assets.pokemon.com/assets/cms2/img/pokedex/full/${idStr3}.png`);
+        tries.push('/imagens/pokebola.png'); // Fallback final local
+        
         let idx = 0;
         elements.pokemonSprite.onerror = () => {
             idx += 1;
             if (idx < tries.length) {
                 elements.pokemonSprite.src = tries[idx];
             } else {
+                // Fallback final: imagem padrão
                 elements.pokemonSprite.onerror = null;
+                elements.pokemonSprite.src = '/imagens/pokebola.png';
             }
         };
         elements.pokemonSprite.src = tries[0];
@@ -379,7 +394,8 @@ const PokedexAnime = (() => {
             updateSidebar();
             renderCapturedGrid();
         } catch {
-            showError('Erro ao carregar Pokémon aleatório');
+            // Silencia erro - apenas limpa a tela
+            clearCurrentPokemon();
         } finally {
             state.isLoading = false;
             showLoadingState(false);
@@ -451,7 +467,8 @@ const PokedexAnime = (() => {
             updateSidebar();
             renderCapturedGrid();
         } catch {
-            showError('Erro ao carregar Pokémon do tipo selecionado');
+            // Silencia erro - apenas limpa a tela
+            clearCurrentPokemon();
         } finally {
             state.isLoading = false;
             showLoadingState(false);
@@ -491,12 +508,14 @@ const PokedexAnime = (() => {
         setTimeout(() => { notification.remove(); }, 3000);
     };
 
+    /**
+     * Exibe mensagem de erro (uso interno apenas para erros críticos)
+     * @param {string} message - Mensagem de erro
+     */
     const showError = (message) => {
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'pokedex-error';
-        errorDiv.textContent = message;
-        document.body.appendChild(errorDiv);
-        setTimeout(() => { errorDiv.remove(); }, 3000);
+        // Silenciado - erros de sprite são tratados com fallback
+        // Apenas registra no console para debug
+        console.debug('Pokedex:', message);
     };
 
     return {

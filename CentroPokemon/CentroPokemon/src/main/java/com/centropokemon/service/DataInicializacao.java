@@ -3,8 +3,8 @@
  * ---------------------------------------
  * @file        DataInicializacao.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
- * @version     1.3
- * @date        2025-11-22
+ * @version     1.1
+ * @date        2025-11-17
  * @description Serviço responsável por buscar dados na PokeAPI v2 e montar
  *               objetos de domínio (Pokémon, Tipos, Stats, Descrições).
  *               Persistência será integrada nas próximas etapas.
@@ -24,10 +24,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.client.RestClientResponseException;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,7 +42,6 @@ public class DataInicializacao {
 
     private static final String API_BASE = "https://pokeapi.co/api/v2";
     private static final int TOTAL_POKEMON = 898;
-    
 
     /**
      * Mapa de tradução de tipos da API (inglês) para português.
@@ -76,8 +71,8 @@ public class DataInicializacao {
     }
 
     /**
-    * Construtor com injeção de repositórios e clientes HTTP/JSON.
-    */
+     * Construtor com injeção de repositórios e clientes HTTP/JSON.
+     */
     public DataInicializacao(
             PokemonRepository pokemonRepository,
             TipoRepository tipoRepository,
@@ -108,17 +103,12 @@ public class DataInicializacao {
 
         int id = pokemonNode.path("id").asInt();
         String nomeEn = pokemonNode.path("name").asText();
-        String spriteUrl = escolherSprite(pokemonNode.path("sprites"), nomeEn, id);
+        String spriteUrl = extrairMelhorSprite(pokemonNode.path("sprites"));
 
         Pokemon pokemon = new Pokemon();
         pokemon.setPokeApiId(id);
         pokemon.setNomeEn(nomeEn);
         pokemon.setSpriteUrl(spriteUrl);
-
-        Integer heightDm = pokemonNode.path("height").isMissingNode() ? null : pokemonNode.path("height").asInt();
-        Integer weightHg = pokemonNode.path("weight").isMissingNode() ? null : pokemonNode.path("weight").asInt();
-        if (heightDm != null) pokemon.setAltura(heightDm / 10.0);
-        if (weightHg != null) pokemon.setPeso(weightHg / 10.0);
 
         List<Tipo> tipos = extrairTipos(pokemonNode.path("types"));
         pokemon.setTipos(resolverTipos(tipos));
@@ -130,8 +120,6 @@ public class DataInicializacao {
             pokemon.setVidaMaxima(stats.getHp());
             pokemon.setVidaAtual(stats.getHp());
         }
-        List<String> habilidades = extrairHabilidades(pokemonNode.path("abilities"));
-        pokemon.setHabilidades(habilidades);
 
         JsonNode speciesNode = getSpeciesNode(String.valueOf(id));
         String nomePt = extrairNomePt(speciesNode);
@@ -144,81 +132,13 @@ public class DataInicializacao {
         }
         pokemon.setDescricoes(descricoes);
 
-        if (pokemon.getSpriteUrl() == null || pokemon.getSpriteUrl().isBlank()) {
-            pokemon.setSpriteUrl("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + id + ".png");
-        }
         Pokemon salvo = salvarOuAtualizarPokemon(pokemon);
         return salvo;
-    }
-
-    /**
-     * Monta o Pokémon diretamente da PokeAPI SEM persistir no banco.
-     * Usado pela Pokédex para funcionar mesmo sem BD disponível.
-     *
-     * @param nomeOuId nome (en) ou id
-     * @return entidade Pokemon preenchida (não persistida)
-     */
-    public Pokemon montarPokemon(String nomeOuId) {
-        JsonNode pokemonNode = getPokemonNode(nomeOuId);
-        if (pokemonNode == null) {
-            return null;
-        }
-
-        int id = pokemonNode.path("id").asInt();
-        String nomeEn = pokemonNode.path("name").asText();
-        String spriteUrl = escolherSprite(pokemonNode.path("sprites"), nomeEn, id);
-
-        Pokemon pokemon = new Pokemon();
-        pokemon.setPokeApiId(id);
-        pokemon.setNomeEn(nomeEn);
-        pokemon.setSpriteUrl(spriteUrl);
-
-        Integer heightDm = pokemonNode.path("height").isMissingNode() ? null : pokemonNode.path("height").asInt();
-        Integer weightHg = pokemonNode.path("weight").isMissingNode() ? null : pokemonNode.path("weight").asInt();
-        if (heightDm != null) pokemon.setAltura(heightDm / 10.0);
-        if (weightHg != null) pokemon.setPeso(weightHg / 10.0);
-
-        // Tipos: usa lista pura sem consultar/salvar no repositório
-        List<Tipo> tipos = extrairTipos(pokemonNode.path("types"));
-        pokemon.setTipos(tipos);
-
-        // Stats: monta objeto em memória
-        PokemonStats stats = extrairStats(pokemonNode.path("stats"));
-        stats.setPokemon(pokemon);
-        pokemon.setStats(stats);
-        if (stats.getHp() != null) {
-            pokemon.setVidaMaxima(stats.getHp());
-            pokemon.setVidaAtual(stats.getHp());
-        }
-
-        JsonNode speciesNode = getSpeciesNode(String.valueOf(id));
-        String nomePt = extrairNomePt(speciesNode);
-        pokemon.setNomePt(nomePt != null ? nomePt : nomeEn);
-
-        PokemonDescricao descricao = extrairDescricao(speciesNode, pokemon);
-        List<PokemonDescricao> descricoes = new ArrayList<>();
-        if (descricao != null) {
-            descricoes.add(descricao);
-        }
-        pokemon.setDescricoes(descricoes);
-
-        if (pokemon.getSpriteUrl() == null || pokemon.getSpriteUrl().isBlank()) {
-            pokemon.setSpriteUrl("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + id + ".png");
-        }
-        return pokemon;
     }
 
     public Pokemon carregarPokemonAleatorio() {
         int id = (int) (Math.random() * TOTAL_POKEMON) + 1;
         return carregarPokemon(String.valueOf(id));
-    }
-
-    /**
-     * Monta Pokémon aleatório SEM persistir.
-     */
-    public Pokemon montarPokemonAleatorio() {
-        int id = (int) (Math.random() * TOTAL_POKEMON) + 1;
-        return montarPokemon(String.valueOf(id));
     }
 
     public Pokemon carregarPokemonAleatorioPorTipo(String type) {
@@ -236,26 +156,6 @@ public class DataInicializacao {
         String[] parts = url.split("/");
         String idStr = parts[parts.length - 1].isBlank() ? parts[parts.length - 2] : parts[parts.length - 1];
         return carregarPokemon(idStr);
-    }
-
-    /**
-     * Monta Pokémon aleatório por tipo SEM persistir.
-     */
-    public Pokemon montarPokemonAleatorioPorTipo(String type) {
-        JsonNode typeNode = getTypeNode(type);
-        if (typeNode == null) {
-            return null;
-        }
-        JsonNode list = typeNode.path("pokemon");
-        if (!list.isArray() || list.isEmpty()) {
-            return null;
-        }
-        int idx = (int) (Math.random() * list.size());
-        JsonNode entry = list.get(idx).path("pokemon");
-        String url = entry.path("url").asText();
-        String[] parts = url.split("/");
-        String idStr = parts[parts.length - 1].isBlank() ? parts[parts.length - 2] : parts[parts.length - 1];
-        return montarPokemon(idStr);
     }
 
     private final RestTemplate http;
@@ -303,13 +203,17 @@ public class DataInicializacao {
                 stats.setAtaqueEspecial(pokemon.getStats().getAtaqueEspecial());
                 stats.setDefesaEspecial(pokemon.getStats().getDefesaEspecial());
             }
-            if (pokemon.getDescricoes() != null) {
-                List<PokemonDescricao> descricoesAtualizadas = new ArrayList<>();
+            if (pokemon.getDescricoes() != null && !pokemon.getDescricoes().isEmpty()) {
+                // Limpa descrições antigas antes de adicionar novas
+                if (alvo.getDescricoes() != null) {
+                    alvo.getDescricoes().clear();
+                } else {
+                    alvo.setDescricoes(new ArrayList<>());
+                }
                 for (PokemonDescricao d : pokemon.getDescricoes()) {
                     d.setPokemon(alvo);
-                    descricoesAtualizadas.add(d);
+                    alvo.getDescricoes().add(d);
                 }
-                alvo.setDescricoes(descricoesAtualizadas);
             }
         } else {
             alvo = pokemon;
@@ -327,46 +231,14 @@ public class DataInicializacao {
     private String extrairMelhorSprite(JsonNode sprites) {
         if (sprites == null || sprites.isMissingNode()) return null;
         JsonNode other = sprites.path("other");
-        String home = other.path("home").path("front_default").asText(null);
-        if (home != null && !home.isBlank()) return home;
         String official = other.path("official-artwork").path("front_default").asText(null);
         if (official != null && !official.isBlank()) return official;
-        String front = sprites.path("front_default").asText(null);
-        if (front != null && !front.isBlank()) return front;
         String dream = other.path("dream_world").path("front_default").asText(null);
-        return dream;
-    }
-
-    private String escolherSprite(JsonNode sprites, String nomeEn, int id) {
-        List<String> candidatos = new ArrayList<>();
-        String primario = extrairMelhorSprite(sprites);
-        if (primario != null && !primario.isBlank()) candidatos.add(primario);
-        String idStr3 = String.format("%03d", id);
-        candidatos.add("https://assets.pokemon.com/assets/cms2/img/pokedex/full/" + idStr3 + ".png");
-        String nomeLower = nomeEn == null ? null : nomeEn.toLowerCase();
-        if (nomeLower != null && !nomeLower.isBlank()) {
-            candidatos.add("https://img.pokemondb.net/artwork/large/" + nomeLower + ".jpg");
-        }
-        candidatos.add("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + id + ".png");
-
-        for (String url : candidatos) {
-            if (url == null || url.isBlank()) continue;
-            if (urlDisponivel(url)) return url;
-        }
-        return primario;
-    }
-
-    private boolean urlDisponivel(String url) {
-        try {
-            ResponseEntity<Void> resp = http.exchange(url, HttpMethod.HEAD, HttpEntity.EMPTY, Void.class);
-            int code = resp.getStatusCode().value();
-            return code >= 200 && code < 400;
-        } catch (RestClientResponseException e) {
-            int code = e.getRawStatusCode();
-            return code >= 200 && code < 400;
-        } catch (Exception e) {
-            return false;
-        }
+        if (dream != null && !dream.isBlank()) return dream;
+        String home = other.path("home").path("front_default").asText(null);
+        if (home != null && !home.isBlank()) return home;
+        String front = sprites.path("front_default").asText(null);
+        return front;
     }
 
     /**
@@ -515,15 +387,5 @@ public class DataInicializacao {
         } catch (Exception e) {
             return null;
         }
-    }
-
-    private List<String> extrairHabilidades(JsonNode abilities) {
-        List<String> lista = new ArrayList<>();
-        if (abilities == null || !abilities.isArray()) return lista;
-        for (JsonNode a : abilities) {
-            String nome = a.path("ability").path("name").asText(null);
-            if (nome != null && !nome.isBlank()) lista.add(nome);
-        }
-        return lista;
     }
 }

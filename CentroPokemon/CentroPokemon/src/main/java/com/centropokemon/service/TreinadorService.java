@@ -4,7 +4,7 @@
  * @file        TreinadorService.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
  * @version     1.1
- * @date        2025-11-19
+ * @date        23/11/2025
  * @description Serviço de domínio para cadastro e autenticação de Treinadores.
  *              Fornece validações e consultas utilitárias.
  */

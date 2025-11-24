@@ -1,5 +1,10 @@
 /**
+ * Centro Pokémon - Animações e Interações
+ * ========================================
  * @file        animacoes.js
+ * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
+ * @version     1.1
+ * @date        23/11/2025
  * @summary     Animações e interações leves do Centro Pokémon
  * @description Timer de oferta, efeitos nos botões, navegação ativa,
  *              partículas decorativas e transições entre seções da landing.

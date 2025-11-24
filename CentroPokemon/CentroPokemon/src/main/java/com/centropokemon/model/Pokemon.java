@@ -3,9 +3,10 @@
  * ---------------------------------------
  * @file        Pokemon.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
- * @version     1.1
- * @date        2025-11-18
+ * @version     1.3
+ * @date        23/11/2025
  * @description Classe base representando um Pokémon para uso com a API.
+ *              Contém informações básicas, tipos, stats, descrições e relacionamento com treinador.
  */
 
 package com.centropokemon.model;
@@ -240,16 +241,24 @@ public class Pokemon {
         return tipos;
     }
 
+    /** @return nível do Pokémon */
     public Integer getNivel() { return nivel; }
+    /** @param nivel nível do Pokémon */
     public void setNivel(Integer nivel) { this.nivel = nivel; }
 
+    /** @return lista de habilidades do Pokémon */
     public List<String> getHabilidades() { return habilidades; }
+    /** @param habilidades lista de habilidades do Pokémon */
     public void setHabilidades(List<String> habilidades) { this.habilidades = habilidades; }
 
+    /** @return altura do Pokémon em metros */
     public Double getAltura() { return altura; }
+    /** @param altura altura do Pokémon em metros */
     public void setAltura(Double altura) { this.altura = altura; }
 
+    /** @return peso do Pokémon em quilogramas */
     public Double getPeso() { return peso; }
+    /** @param peso peso do Pokémon em quilogramas */
     public void setPeso(Double peso) { this.peso = peso; }
 
     /**

@@ -1,9 +1,19 @@
+<!--
+    Centro Pokémon - Adicionar Pokémon à Coleção
+    =============================================
+    @file        cadastro-pokemon.html
+    @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
+    @version     1.1
+    @date        23/11/2025
+    @description Página para adicionar um Pokémon pesquisado na Pokédex à coleção do treinador.
+                 Os dados vêm pré-preenchidos da pesquisa, o usuário apenas confirma.
+-->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro de Pokémon</title>
+    <title>Adicionar Pokémon - Centro Pokémon</title>
     <link rel="stylesheet" href="/css/novo-style.css">
     <link rel="stylesheet" href="/css/pokedex-anime.css">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -82,12 +92,18 @@
             if (nivelField) nivelField.value = 1;
             if (habilidadesField) habilidadesField.value = '';
             const id = draft.pokeApiId || draft.id || null;
-            const sprite = draft.spriteUrl || (id ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png` : '');
+            // Usa spriteUrl do draft ou mantém vazio para o usuário preencher
+            const sprite = draft.spriteUrl || '';
             if (imgField) imgField.value = sprite;
             if (preview) preview.src = sprite;
             typeBtns.forEach(btn => { if (tipos.includes(btn.dataset.type)) btn.classList.add('active'); });
         }
 
+        /**
+         * Valida os dados do formulário antes de enviar
+         * @param {Document} root - Documento raiz
+         * @returns {Object|false} Dados validados ou false se inválido
+         */
         function validateForm(root) {
             const alertEl = root.querySelector('#alert');
             const nome = root.querySelector('#nome').value.trim();
@@ -102,6 +118,11 @@
             return { nome, nivel, img, tipos: tiposSel, habilidades: root.querySelector('#habilidades').value.trim() };
         }
 
+        /**
+         * Processa o envio do formulário de cadastro
+         * Adiciona o Pokémon à coleção do treinador
+         * @param {Event} e - Evento de submit
+         */
         async function handleSubmit(e) {
             e.preventDefault();
             const root = e.target.closest('form').ownerDocument;
@@ -109,7 +130,7 @@
             if (!result) return;
             const trainerId = localStorage.getItem(TRAINER_ID_KEY);
             const alertEl = root.querySelector('#alert');
-            if (!trainerId) { setAlert(alertEl, 'error', 'Faça login para cadastrar'); return; }
+            if (!trainerId) { setAlert(alertEl, 'error', 'Faça login para adicionar Pokémon à sua coleção'); return; }
             const draft = readDraft();
             const id = draft && (draft.pokeApiId || draft.id) || null;
             const body = {
@@ -125,6 +146,7 @@
             };
             const submitBtn = root.querySelector('#submit-btn');
             submitBtn.disabled = true;
+            setAlert(alertEl, '', '');
             try {
                 await postJson(`${API_BASE}/${trainerId}/pokemons`, body);
                 saveStatsCaught(id);
@@ -133,7 +155,12 @@
                 document.body.classList.add('page-leave-active');
                 setTimeout(() => { window.location.href = '/pokedex'; }, 250);
             } catch (err) {
-                setAlert(alertEl, 'error', 'Falha ao cadastrar Pokémon');
+                const msg = String(err.message || '');
+                if (msg === '409') {
+                    setAlert(alertEl, 'error', 'Você já possui este Pokémon na sua coleção!');
+                } else {
+                    setAlert(alertEl, 'error', 'Falha ao adicionar Pokémon. Tente novamente.');
+                }
             } finally {
                 submitBtn.disabled = false;
             }
@@ -174,8 +201,11 @@
     </header>
     <main>
         <section class="cadastro-container">
-            <h2>Cadastrar Pokémon</h2>
-            <form id="cadastro-pokemon-form" class="form-grid">
+            <h2>Adicionar à Minha Coleção</h2>
+            <p style="text-align: center; color: var(--pokemon-dark-gray); font-size: 0.75rem; margin-bottom: 1rem;">
+                Confirme os dados do Pokémon que você deseja adicionar à sua coleção
+            </p>
+            <form id="cadastro-pokemon-form" class="form-grid"></form>
                 <div>
                     <label>Nome do Pokémon</label>
                     <input id="nome" type="text" required />
@@ -200,8 +230,8 @@
                     </div>
                 </div>
                 <div class="actions">
-                    <button id="submit-btn" type="submit" class="btn primary">Cadastrar</button>
-                    <a href="/pokedex" class="btn secondary">Voltar</a>
+                    <button id="submit-btn" type="submit" class="btn primary">✓ Adicionar à Coleção</button>
+                    <a href="/pokedex" class="btn secondary">✗ Cancelar</a>
                 </div>
                 <div id="alert" class="alert" role="alert"></div>
             </form>

@@ -3,9 +3,10 @@
  * ---------------------------------------
  * @file        PokemonDoTreinadorController.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
- * @version     1.1
- * @date        2025-11-19
- * @description Endpoints REST para cadastro e listagem de Pokémon de um treinador.
+ * @version     1.2
+ * @date        23/11/2025
+ * @description Endpoints REST para gerenciar a coleção de Pokémon de um treinador.
+ *              Permite adicionar Pokémon da Pokédex, listar a coleção e remover Pokémon.
  */
 
 package com.centropokemon.controller;
@@ -21,12 +22,16 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Controlador REST para gerenciar os Pokémon cadastrados por um treinador.
+ * Controlador REST para gerenciar a coleção de Pokémon de um treinador.
+ * Permite adicionar Pokémon pesquisados na Pokédex à coleção pessoal,
+ * listar todos os Pokémon do treinador e remover Pokémon da coleção.
+ * 
+ * @author Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
+ * @version 1.2
+ * @since 1.0
  */
-@RestController
-@CrossOrigin(origins = "http://localhost:8080")
 @RequestMapping("/CentroPokemon/api/treinadores/{treinadorId}/pokemons")
-public class PokemonDoTreinadorController {
+public class PokemonDoTreinadorController extends BaseRestController {
 
     private final CadastroPokemonService cadastro;
 
@@ -35,7 +40,8 @@ public class PokemonDoTreinadorController {
     }
 
     /**
-     * Payload de cadastro de Pokémon do treinador.
+     * Payload para adicionar um Pokémon à coleção do treinador.
+     * Contém todos os dados necessários vindos da Pokédex.
      */
     public static class CadastroPokemonRequest {
         public Integer pokeApiId;
@@ -50,7 +56,8 @@ public class PokemonDoTreinadorController {
     }
 
     /**
-     * Resposta segura do Pokémon com vínculo ao treinador.
+     * Resposta com dados do Pokémon da coleção do treinador.
+     * Não expõe dados sensíveis, apenas informações públicas do Pokémon.
      */
     public static class PokemonResponse {
         public Integer id;
@@ -82,8 +89,15 @@ public class PokemonDoTreinadorController {
     }
 
     /**
+     * Adiciona um Pokémon à coleção do treinador.
      * Endpoint: POST /CentroPokemon/api/treinadores/{treinadorId}/pokemons
-     * Cadastra um Pokémon para o treinador.
+     * 
+     * Usado quando o treinador pesquisa um Pokémon na Pokédex e decide adicioná-lo.
+     * Valida se o Pokémon já não está na coleção para evitar duplicatas.
+     * 
+     * @param treinadorId ID do treinador
+     * @param req dados do Pokémon a ser adicionado
+     * @return 201 CREATED com dados do Pokémon adicionado, ou erro apropriado
      */
     @PostMapping
     public ResponseEntity<?> cadastrar(@PathVariable Integer treinadorId,
@@ -114,38 +128,51 @@ public class PokemonDoTreinadorController {
                     req.tipos
             );
             PokemonResponse out = PokemonResponse.of(saved);
-            out.message = "Pokémon cadastrado com sucesso";
-            return ResponseEntity.status(HttpStatus.CREATED).body(out);
+            out.message = "Pokémon adicionado à sua coleção com sucesso!";
+            return created(out);
         } catch (IllegalArgumentException e) {
             String msg = e.getMessage();
             if (msg != null && msg.toLowerCase().contains("treinador")) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Treinador não encontrado");
             }
-            if (msg != null && msg.toLowerCase().contains("duplicado")) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Pokémon já cadastrado");
+            if (msg != null && (msg.toLowerCase().contains("duplicado") || msg.toLowerCase().contains("já possui"))) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Você já possui este Pokémon na sua coleção!");
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(msg != null ? msg : "Dados inválidos");
         }
     }
 
     /**
+     * Lista todos os Pokémon da coleção do treinador.
      * Endpoint: GET /CentroPokemon/api/treinadores/{treinadorId}/pokemons
-     * Lista todos os Pokémon cadastrados pelo treinador.
+     * 
+     * Retorna a lista completa de Pokémon que o treinador possui,
+     * incluindo o inicial e todos os adicionados via Pokédex.
+     * Usado para exibir a coleção e para selecionar Pokémon em consultas/cura.
+     * 
+     * @param treinadorId ID do treinador
+     * @return lista de Pokémon da coleção
      */
     @GetMapping
     public ResponseEntity<List<PokemonResponse>> listar(@PathVariable Integer treinadorId) {
         List<PokemonResponse> lista = cadastro.listar(treinadorId)
                 .stream().map(PokemonResponse::of).toList();
-        return ResponseEntity.ok(lista);
+        return ok(lista);
     }
 
     /**
+     * Remove um Pokémon da coleção do treinador.
      * Endpoint: DELETE /CentroPokemon/api/treinadores/{treinadorId}/pokemons/{pokemonId}
-     * Remove um Pokémon do treinador.
+     * 
+     * Só remove se o Pokémon realmente pertencer ao treinador.
+     * 
+     * @param treinadorId ID do treinador
+     * @param pokemonId ID do Pokémon a ser removido
+     * @return 204 NO CONTENT se removido, 404 NOT FOUND se não encontrado
      */
     @DeleteMapping("/{pokemonId}")
     public ResponseEntity<Void> remover(@PathVariable Integer treinadorId, @PathVariable Integer pokemonId) {
-        boolean ok = cadastro.remover(treinadorId, pokemonId);
-        return ok ? ResponseEntity.noContent().build() : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        boolean removido = cadastro.remover(treinadorId, pokemonId);
+        return removido ? noContent() : notFound();
     }
 }

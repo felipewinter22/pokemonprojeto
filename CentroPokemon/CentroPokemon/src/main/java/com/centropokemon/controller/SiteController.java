@@ -3,8 +3,8 @@
  * ---------------------------------------
  * @file        SiteController.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
- * @version     1.1
- * @date        2025-11-19
+ * @version     1.2
+ * @date        23/11/2025
  * @description Controlador MVC que expõe as rotas públicas do site e encaminha
  *              para os arquivos estáticos correspondentes.
  */
@@ -13,16 +13,6 @@ package com.centropokemon.controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
-/**
- * Centro Pokémon - Controlador de Rotas Públicas
- * ----------------------------------------------
- * Controlador MVC que expõe as rotas públicas do site e encaminha
- * para os arquivos estáticos correspondentes.
- *
- * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
- * @version     1.1
- * @since       1.0
- */
 @Controller
 public class SiteController {
 

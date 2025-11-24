@@ -3,10 +3,11 @@
  * ---------------------------------------
  * @file        CadastroPokemonService.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
- * @version     1.1
- * @date        2025-11-19
- * @description Regras de domínio para cadastrar, listar e remover Pokémon
- *              associados a um treinador.
+ * @version     1.2
+ * @date        23/11/2025
+ * @description Regras de domínio para adicionar, listar e remover Pokémon
+ *              da coleção de um treinador. Permite que treinadores construam
+ *              sua equipe de Pokémon para consultas, vacinações e tratamentos.
  */
 
 package com.centropokemon.service;
@@ -25,7 +26,13 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 /**
- * Serviço de regras para cadastro de Pokémon do treinador.
+ * Serviço de regras para gerenciar a coleção de Pokémon do treinador.
+ * Permite adicionar Pokémon pesquisados na Pokédex à coleção pessoal,
+ * listar todos os Pokémon do treinador e remover Pokémon da coleção.
+ * 
+ * @author Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
+ * @version 1.2
+ * @since 1.0
  */
 @Service
 public class CadastroPokemonService {
@@ -44,23 +51,25 @@ public class CadastroPokemonService {
     }
 
     /**
-     * Cadastra um Pokémon para o treinador com validações básicas.
+     * Adiciona um Pokémon à coleção do treinador com validações básicas.
+     * Usado principalmente para adicionar o Pokémon inicial (starter) no cadastro.
+     * 
      * @param treinadorId id do treinador
-     * @param pokeApiId id externo (opcional)
+     * @param pokeApiId id externo da PokeAPI (opcional)
      * @param nomePt nome em português
      * @param nomeEn nome em inglês
-     * @param spriteUrl url do sprite
+     * @param spriteUrl url do sprite/imagem
      * @param vidaAtual vida atual (default 100)
      * @param vidaMaxima vida máxima (default 100)
-     * @return Pokémon persistido
-     * @throws IllegalArgumentException quando treinador não existe ou duplicado por pokeApiId
+     * @return Pokémon adicionado à coleção
+     * @throws IllegalArgumentException quando treinador não existe ou Pokémon já está na coleção
      */
     public Pokemon cadastrar(Integer treinadorId, Integer pokeApiId, String nomePt, String nomeEn, String spriteUrl,
                              Integer vidaAtual, Integer vidaMaxima) {
         Optional<Treinador> tOpt = treinadores.findById(treinadorId);
         if (tOpt.isEmpty()) throw new IllegalArgumentException("Treinador não encontrado: " + treinadorId);
         if (pokeApiId != null && pokemons.buscarPorTreinadorIdEPokeApiId(treinadorId, pokeApiId).isPresent()) {
-            throw new IllegalArgumentException("Pokémon já cadastrado para este treinador com pokeApiId: " + pokeApiId);
+            throw new IllegalArgumentException("Você já possui este Pokémon na sua coleção!");
         }
         Treinador treinador = tOpt.get();
         Pokemon p = new Pokemon();
@@ -75,19 +84,22 @@ public class CadastroPokemonService {
     }
 
     /**
-     * Cadastra um Pokémon com validações completas.
+     * Adiciona um Pokémon à coleção do treinador com validações completas.
+     * Usado quando o treinador pesquisa um Pokémon na Pokédex e decide adicioná-lo à sua coleção.
+     * Os dados vêm pré-preenchidos da API, o treinador pode ajustar nível e habilidades.
      *
      * @param treinadorId id do treinador
-     * @param pokeApiId id externo opcional
-     * @param nomePt nome em português obrigatório
-     * @param nomeEn nome em inglês opcional
-     * @param spriteUrl URL obrigatória de imagem http(s)
-     * @param vidaAtual vida atual (>=1)
-     * @param vidaMaxima vida máxima (>=1)
-     * @param nivel nível do Pokémon (>=1)
-     * @param habilidades lista de habilidades (opcional)
-     * @param tipos lista de tipos em pt/en
-     * @return Pokémon persistido
+     * @param pokeApiId id externo da PokeAPI (opcional, mas recomendado)
+     * @param nomePt nome em português (obrigatório)
+     * @param nomeEn nome em inglês (opcional, usa nomePt se não fornecido)
+     * @param spriteUrl URL da imagem do Pokémon (obrigatória, deve começar com http/https)
+     * @param vidaAtual vida atual do Pokémon (>=1, default 100)
+     * @param vidaMaxima vida máxima do Pokémon (>=1, default 100)
+     * @param nivel nível do Pokémon (>=1, default 1)
+     * @param habilidades lista de habilidades do Pokémon (opcional)
+     * @param tipos lista de tipos do Pokémon em pt/en (obrigatório, mínimo 1)
+     * @return Pokémon adicionado à coleção do treinador
+     * @throws IllegalArgumentException quando dados inválidos ou Pokémon já está na coleção
      */
     public Pokemon cadastrarCompleto(Integer treinadorId, Integer pokeApiId, String nomePt, String nomeEn, String spriteUrl,
                                      Integer vidaAtual, Integer vidaMaxima, Integer nivel, List<String> habilidades,
@@ -95,7 +107,7 @@ public class CadastroPokemonService {
         Optional<Treinador> tOpt = treinadores.findById(treinadorId);
         if (tOpt.isEmpty()) throw new IllegalArgumentException("Treinador não encontrado");
         if (pokeApiId != null && pokemons.buscarPorTreinadorIdEPokeApiId(treinadorId, pokeApiId).isPresent()) {
-            throw new IllegalArgumentException("Duplicado: pokeApiId já cadastrado");
+            throw new IllegalArgumentException("Você já possui este Pokémon na sua coleção!");
         }
         if (nomePt == null || nomePt.trim().isEmpty()) throw new IllegalArgumentException("Nome é obrigatório");
         if (spriteUrl == null || !spriteUrl.trim().toLowerCase().startsWith("http")) throw new IllegalArgumentException("Imagem inválida");
@@ -125,6 +137,13 @@ public class CadastroPokemonService {
         return pokemons.save(p);
     }
 
+    /**
+     * Resolve um tipo de Pokémon a partir de uma string (PT ou EN).
+     * Busca no banco ou cria um novo tipo se não existir.
+     * 
+     * @param valor nome do tipo em português ou inglês
+     * @return entidade Tipo resolvida ou criada
+     */
     private Tipo resolverTipo(String valor) {
         if (valor == null || valor.isBlank()) {
             Tipo t = new Tipo();
@@ -142,19 +161,24 @@ public class CadastroPokemonService {
     }
 
     /**
-     * Lista todos os Pokémon de um treinador.
+     * Lista todos os Pokémon da coleção de um treinador.
+     * Retorna a lista completa de Pokémon que o treinador possui,
+     * incluindo o inicial e todos os adicionados via Pokédex.
+     * 
      * @param treinadorId id do treinador
-     * @return lista de Pokémon
+     * @return lista de Pokémon da coleção do treinador
      */
     public List<Pokemon> listar(Integer treinadorId) {
         return pokemons.buscarPorTreinadorId(treinadorId);
     }
 
     /**
-     * Remove um Pokémon do treinador se pertencer a ele.
+     * Remove um Pokémon da coleção do treinador.
+     * Só remove se o Pokémon realmente pertencer ao treinador.
+     * 
      * @param treinadorId id do treinador
-     * @param pokemonId id do Pokémon
-     * @return true se removido, false caso contrário
+     * @param pokemonId id do Pokémon a ser removido
+     * @return true se removido com sucesso, false se não encontrado ou não pertence ao treinador
      */
     public boolean remover(Integer treinadorId, Integer pokemonId) {
         Optional<Pokemon> pOpt = pokemons.findByIdAndTreinadorId(pokemonId, treinadorId);

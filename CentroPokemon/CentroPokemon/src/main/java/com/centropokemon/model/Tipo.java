@@ -3,10 +3,11 @@
  * ---------------------------------------
  * @file        Tipo.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
- * @version     1.0
- * @date        2025-11-16
+ * @version     1.1
+ * @date        23/11/2025
  * @description Entidade JPA que representa um tipo de Pokémon.
- * Exemplos: Fogo, Água, Planta, Elétrico, etc.
+ *              Exemplos: Fogo, Água, Planta, Elétrico, etc.
+ *              Inclui tradução entre português e inglês.
  */
 
 /**
