@@ -57,7 +57,6 @@ const PokedexAnime = (() => {
         caughtPokemon: document.getElementById('caught-pokemon'),
         lights: document.querySelectorAll('.light'),
         popularList: document.getElementById('popular-list'),
-        recentList: document.getElementById('recent-list'),
         dailyList: document.getElementById('daily-list'),
         capturedGrid: document.getElementById('captured-grid'),
         tipCard: document.getElementById('tip-card')
@@ -161,8 +160,6 @@ const PokedexAnime = (() => {
 
     const updateSidebar = () => {
         console.log('[Pokedex] updateSidebar chamado');
-        console.log('[Pokedex] recentViewed:', state.recentViewed);
-        console.log('[Pokedex] elements.recentList:', elements.recentList);
         
         if (elements.popularList) {
             const entries = Object.entries(state.searchCounts)
@@ -170,23 +167,21 @@ const PokedexAnime = (() => {
                 .sort((a, b) => b.count - a.count)
                 .slice(0, 10);
             elements.popularList.innerHTML = entries.map(e => `
-                <li>
+                <li data-pokemon-id="${e.id}" class="clickable-pokemon">
                     <span>${e.name}</span>
                     <span class="count">${e.count}</span>
                 </li>
             `).join('');
-        }
-        if (elements.recentList) {
-            const html = state.recentViewed.slice(0,10).map(r => `
-                <li>
-                    <span>${r.name}</span>
-                    <a href="/pokedex-anime.html#${r.id}" class="pokedex-link">Ver</a>
-                </li>
-            `).join('');
-            console.log('[Pokedex] HTML gerado para recent:', html);
-            elements.recentList.innerHTML = html;
-        } else {
-            console.warn('[Pokedex] elements.recentList não encontrado!');
+            
+            // Adiciona event listeners para os itens clicáveis
+            elements.popularList.querySelectorAll('.clickable-pokemon').forEach(item => {
+                item.addEventListener('click', () => {
+                    const pokemonId = item.dataset.pokemonId;
+                    if (pokemonId) {
+                        loadPokemon(pokemonId);
+                    }
+                });
+            });
         }
     };
     const renderCapturedGrid = async () => {
@@ -201,8 +196,21 @@ const PokedexAnime = (() => {
                     elements.capturedGrid.innerHTML = items.map((p) => {
                         const id = p.pokeApiId || p.id;
                         const sprite = p.spriteUrl || (id ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png` : '');
-                        return `<div class="sprite-item"><img src="${sprite}" alt="#${String(id||0).padStart(3,'0')}"></div>`;
+                        return `<div class="sprite-item clickable-pokemon" data-pokemon-id="${id}" title="Clique para ver">
+                            <img src="${sprite}" alt="#${String(id||0).padStart(3,'0')}">
+                        </div>`;
                     }).join('');
+                    
+                    // Adiciona event listeners para os sprites clicáveis
+                    elements.capturedGrid.querySelectorAll('.clickable-pokemon').forEach(item => {
+                        item.addEventListener('click', () => {
+                            const pokemonId = item.dataset.pokemonId;
+                            if (pokemonId) {
+                                loadPokemon(pokemonId);
+                            }
+                        });
+                    });
+                    
                     state.caughtPokemon = new Set(lista.map(p => p.pokeApiId || p.id).filter(Boolean));
                     updateStatsDisplay();
                     return;
@@ -212,8 +220,20 @@ const PokedexAnime = (() => {
         const ids = Array.from(state.caughtPokemon).slice(-12).reverse();
         elements.capturedGrid.innerHTML = ids.map((id) => {
             const url = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
-            return `<div class="sprite-item"><img src="${url}" alt="#${String(id).padStart(3,'0')}"></div>`;
+            return `<div class="sprite-item clickable-pokemon" data-pokemon-id="${id}" title="Clique para ver">
+                <img src="${url}" alt="#${String(id).padStart(3,'0')}">
+            </div>`;
         }).join('');
+        
+        // Adiciona event listeners para os sprites clicáveis
+        elements.capturedGrid.querySelectorAll('.clickable-pokemon').forEach(item => {
+            item.addEventListener('click', () => {
+                const pokemonId = item.dataset.pokemonId;
+                if (pokemonId) {
+                    loadPokemon(pokemonId);
+                }
+            });
+        });
     };
 
     const handleSearch = async () => {
@@ -289,8 +309,20 @@ const PokedexAnime = (() => {
         if (state.isLoading) return;
         state.isLoading = true;
         showLoadingState(true);
+        
+        const startTime = Date.now();
+        const minLoadingTime = 1000; // 1 segundo
+        
         try {
             const data = await fetchJson(`${config.apiBaseUrl}/${identifier}`);
+            
+            // Calcula quanto tempo falta para completar 1 segundo
+            const elapsedTime = Date.now() - startTime;
+            const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+            
+            // Aguarda o tempo restante antes de mostrar o resultado
+            await new Promise(resolve => setTimeout(resolve, remainingTime));
+            
             state.currentPokemon = data;
             state.currentPokemonId = data.pokeApiId || data.id || state.currentPokemonId;
             state.viewedPokemon.add(state.currentPokemonId);
@@ -305,6 +337,12 @@ const PokedexAnime = (() => {
             // Log do erro para debug
             console.error('[Pokedex] Erro ao carregar Pokémon:', error);
             console.error('[Pokedex] Identifier:', identifier);
+            
+            // Aguarda o tempo mínimo mesmo em caso de erro
+            const elapsedTime = Date.now() - startTime;
+            const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+            await new Promise(resolve => setTimeout(resolve, remainingTime));
+            
             // Silencia erro visualmente - apenas limpa a tela
             clearCurrentPokemon();
         } finally {
@@ -399,8 +437,20 @@ const PokedexAnime = (() => {
         if (state.isLoading) return;
         state.isLoading = true;
         showLoadingState(true);
+        
+        const startTime = Date.now();
+        const minLoadingTime = 1000; // 1 segundo
+        
         try {
             const data = await fetchJson(`${config.apiBaseUrl}/random`);
+            
+            // Calcula quanto tempo falta para completar 1 segundo
+            const elapsedTime = Date.now() - startTime;
+            const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+            
+            // Aguarda o tempo restante antes de mostrar o resultado
+            await new Promise(resolve => setTimeout(resolve, remainingTime));
+            
             state.currentPokemon = data;
             state.currentPokemonId = data.pokeApiId || data.id || state.currentPokemonId;
             state.viewedPokemon.add(state.currentPokemonId);
@@ -412,6 +462,11 @@ const PokedexAnime = (() => {
             updateSidebar();
             renderCapturedGrid();
         } catch {
+            // Aguarda o tempo mínimo mesmo em caso de erro
+            const elapsedTime = Date.now() - startTime;
+            const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+            await new Promise(resolve => setTimeout(resolve, remainingTime));
+            
             // Silencia erro - apenas limpa a tela
             clearCurrentPokemon();
         } finally {
@@ -558,8 +613,20 @@ const PokedexAnime = (() => {
         if (state.isLoading) return;
         state.isLoading = true;
         showLoadingState(true);
+        
+        const startTime = Date.now();
+        const minLoadingTime = 2000; // 2 segundos
+        
         try {
             const data = await fetchJson(`${config.apiBaseUrl}/type/${type}/random`);
+            
+            // Calcula quanto tempo falta para completar 2 segundos
+            const elapsedTime = Date.now() - startTime;
+            const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+            
+            // Aguarda o tempo restante antes de mostrar o resultado
+            await new Promise(resolve => setTimeout(resolve, remainingTime));
+            
             state.currentPokemon = data;
             state.currentPokemonId = data.pokeApiId || data.id || state.currentPokemonId;
             state.viewedPokemon.add(state.currentPokemonId);
@@ -571,6 +638,11 @@ const PokedexAnime = (() => {
             updateSidebar();
             renderCapturedGrid();
         } catch {
+            // Aguarda o tempo mínimo mesmo em caso de erro
+            const elapsedTime = Date.now() - startTime;
+            const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+            await new Promise(resolve => setTimeout(resolve, remainingTime));
+            
             // Silencia erro - apenas limpa a tela
             clearCurrentPokemon();
         } finally {
@@ -582,14 +654,45 @@ const PokedexAnime = (() => {
     const showLoadingState = (isLoading) => {
         const screen = document.querySelector('.pokedex-screen');
         if (!screen) return;
+        
         if (isLoading) {
             screen.classList.add('loading');
             if (elements.searchBtn) elements.searchBtn.disabled = true;
             if (elements.randomBtn) elements.randomBtn.disabled = true;
+            
+            // Cria as Pokébolas de loading
+            const loader = document.createElement('div');
+            loader.className = 'pokeball-loader';
+            loader.innerHTML = `
+                <div class="pokeball"></div>
+                <div class="pokeball"></div>
+                <div class="pokeball"></div>
+            `;
+            screen.appendChild(loader);
+            
+            // Adiciona efeito de "escaneamento" nas luzes
+            if (elements.lights && elements.lights.length > 0) {
+                elements.lights.forEach((light, index) => {
+                    setTimeout(() => {
+                        light.classList.add('scanning');
+                    }, index * 100);
+                });
+            }
         } else {
             screen.classList.remove('loading');
             if (elements.searchBtn) elements.searchBtn.disabled = false;
             if (elements.randomBtn) elements.randomBtn.disabled = false;
+            
+            // Remove as Pokébolas de loading
+            const loader = screen.querySelector('.pokeball-loader');
+            if (loader) loader.remove();
+            
+            // Remove efeito de escaneamento
+            if (elements.lights && elements.lights.length > 0) {
+                elements.lights.forEach(light => {
+                    light.classList.remove('scanning');
+                });
+            }
         }
     };
 
@@ -646,7 +749,10 @@ const PokedexAnime = (() => {
     };
 })();
 
-document.addEventListener('DOMContentLoaded', () => { try { generateDailyMissions(); } catch {} PokedexAnime.init(); });
+document.addEventListener('DOMContentLoaded', () => { 
+    try { generateDailyMissions(); } catch {} 
+    PokedexAnime.init(); 
+});
 
 try {
     const success = JSON.parse(localStorage.getItem('pokedex_register_success') || 'null');

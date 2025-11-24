@@ -18,6 +18,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Splash Screen Inicial -->
+    <div id="splash-screen" class="splash-screen">
+        <div class="splash-content">
+            <div class="splash-pokeballs">
+                <div class="pokeball"></div>
+                <div class="pokeball"></div>
+                <div class="pokeball"></div>
+            </div>
+            <h2 class="splash-title">Iniciando Aventura Pokémon</h2>
+        </div>
+    </div>
+
     <!--
     @section    Header
     @purpose    Cabeçalho fixo com navegação principal
@@ -277,6 +289,17 @@
     <script src="/js/auth-header.js"></script>
     <script src="/js/animacoes.js"></script>
     <script>
+        // Remove splash screen após 2 segundos
+        document.addEventListener('DOMContentLoaded', () => {
+            const splashScreen = document.getElementById('splash-screen');
+            if (splashScreen) {
+                setTimeout(() => {
+                    splashScreen.style.display = 'none';
+                }, 2500);
+            }
+        });
+    </script>
+    <script>
         const API_BASE_TREINADORES = '/api/treinadores';
         const TRAINER_ID_KEY = 'treinador_id';
         const trainerId = localStorage.getItem(TRAINER_ID_KEY);
@@ -347,12 +370,104 @@
 
         async function curarPokemon(pokemonId) {
             if (!trainerId) return;
+            
+            // Encontra o card do Pokémon
+            const hpBar = document.querySelector(`[data-pokemon-id="${pokemonId}"]`);
+            const card = hpBar?.closest('.pokemon-cura-card');
+            if (!card) return;
+            
+            // Adiciona classe de cura
+            card.classList.add('healing');
+            
+            // Cria efeito de partículas
+            createHealingParticles(card);
+            
+            // Efeito de brilho na barra de HP
+            hpBar.classList.add('healing-glow');
+            
             try {
-                await fetchJson(`${API_BASE_TREINADORES}/${trainerId}/pokemons/${pokemonId}/curar`, { method: 'POST' });
-                await carregarPokemons();
+                const result = await fetchJson(`${API_BASE_TREINADORES}/${trainerId}/pokemons/${pokemonId}/curar`, { method: 'POST' });
+                
+                // Aguarda um pouco para mostrar a animação
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Atualiza apenas este Pokémon com transição suave
+                const hpFill = hpBar.querySelector('.hp-bar-fill');
+                const hpText = hpBar.querySelector('.hp-text');
+                const hpPercent = Math.round((result.vidaAtual / result.vidaMaxima) * 100);
+                
+                // Fade out do texto antigo
+                hpText.style.opacity = '0';
+                
+                // Aguarda o fade out
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // Atualiza o texto
+                hpText.textContent = `${result.vidaAtual}/${result.vidaMaxima} HP`;
+                
+                // Fade in do texto novo
+                hpText.style.opacity = '1';
+                
+                // Anima a barra de HP (a transição CSS já está definida)
+                hpFill.style.width = `${hpPercent}%`;
+                
+                // Mostra notificação de sucesso
+                showHealNotification(card);
+                
+                // Adiciona badge de curado se estiver 100%
+                if (hpPercent === 100) {
+                    const existingBadge = card.querySelector('.curado-badge');
+                    if (!existingBadge) {
+                        const badge = document.createElement('div');
+                        badge.className = 'curado-badge';
+                        badge.textContent = '✓ Curado';
+                        card.appendChild(badge);
+                    }
+                }
+                
+                // Remove classes de cura após as animações terminarem
+                setTimeout(() => {
+                    card.classList.remove('healing');
+                    hpBar.classList.remove('healing-glow');
+                }, 2000); // Tempo total das animações
+                
             } catch (err) {
                 console.error('Erro ao curar:', err);
+                card.classList.remove('healing');
+                hpBar.classList.remove('healing-glow');
             }
+        }
+        
+        function createHealingParticles(card) {
+            const particlesContainer = document.createElement('div');
+            particlesContainer.className = 'healing-particles';
+            
+            // Cria 15 partículas
+            for (let i = 0; i < 15; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'heal-particle';
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.animationDelay = `${Math.random() * 0.5}s`;
+                particlesContainer.appendChild(particle);
+            }
+            
+            card.appendChild(particlesContainer);
+            
+            // Remove as partículas após a animação
+            setTimeout(() => {
+                particlesContainer.remove();
+            }, 2000);
+        }
+        
+        function showHealNotification(card) {
+            const notification = document.createElement('div');
+            notification.className = 'heal-notification';
+            notification.textContent = '💚 +100 HP';
+            card.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 2000);
         }
 
         function renderConsultas(consultas) {

@@ -57,12 +57,16 @@
     <div class="pokedex-page">
         <!--
         @region     Sidebar Esquerda
-        @content    Coleção capturada (sprites) + Dica do Professor
+        @content    Coleção capturada (sprites) + Missões diárias + Dica do Professor
         -->
         <aside class="pokedex-left">
             <div class="sidebar-section">
                 <h3>Coleção capturada</h3>
                 <div id="captured-grid" class="sprite-grid"></div>
+            </div>
+            <div class="sidebar-section">
+                <h3>Missões diárias</h3>
+                <ul id="daily-list" class="daily-list"></ul>
             </div>
             <div class="sidebar-section">
                 <h3>Dica do Professor</h3>
@@ -187,8 +191,7 @@
         </div>
         <!--
         @region     Sidebar Direita
-        @content    Mais pesquisados, Tipos (mosaico), Estatísticas, Recentes,
-                    Missões diárias
+        @content    Mais pesquisados, Tipos (mosaico), Estatísticas
         -->
         <aside class="pokedex-sidebar">
             <div class="sidebar-section">
@@ -234,14 +237,6 @@
                         <span class="stat-label">Cadastrados</span>
                     </div>
                 </div>
-            </div>
-            <div class="sidebar-section">
-                <h3>Vistos recentemente</h3>
-                <ul id="recent-list" class="recent-list"></ul>
-            </div>
-            <div class="sidebar-section">
-                <h3>Missões diárias</h3>
-                <ul id="daily-list" class="daily-list"></ul>
             </div>
         </aside>
     </div>

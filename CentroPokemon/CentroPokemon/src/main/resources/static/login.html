@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="/css/novo-style.css">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
+        body {
+            background: linear-gradient(135deg, #3B4CCA 0%, #2a3a9c 100%);
+            min-height: 100vh;
+        }
+        
         .login-container {
             display: grid;
             grid-template-columns: 1fr 350px;
@@ -22,6 +27,11 @@
             border-radius: 15px;
             padding: 2rem;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .login-form-card:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
         }
         
         .login-form-card h2 {
@@ -45,14 +55,19 @@
         .form-group input {
             width: 100%;
             padding: 0.8rem;
-            border: 2px solid #ddd;
-            border-radius: 8px;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
             font-size: 1rem;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
         }
         
         .form-group input:focus {
             outline: none;
-            border-color: #FF0000;
+            border-color: #3B4CCA;
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 76, 202, 0.2);
         }
         
         .btn-login {
@@ -102,6 +117,12 @@
             border-radius: 15px;
             padding: 1.5rem;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
         }
         
         .sidebar-card img {

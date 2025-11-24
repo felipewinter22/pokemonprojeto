@@ -3,7 +3,7 @@
  * ---------------------------------------
  * @file        CentroController.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
- * @version     1.2
+ * @version     1.4
  * @date        23/11/2025
  * @description Endpoints REST do Centro de Cura para Pokémon da coleção do treinador.
  *              Permite curar individualmente, curar todos, verificar necessidade e status.

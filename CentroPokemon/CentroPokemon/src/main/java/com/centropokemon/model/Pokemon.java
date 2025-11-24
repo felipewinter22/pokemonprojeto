@@ -3,7 +3,7 @@
  * ---------------------------------------
  * @file        Pokemon.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
- * @version     1.3
+ * @version     1.4
  * @date        23/11/2025
  * @description Classe base representando um Pokémon para uso com a API.
  *              Contém informações básicas, tipos, stats, descrições e relacionamento com treinador.

@@ -3,7 +3,7 @@
  * ---------------------------------------
  * @file        PokedexController.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
- * @version     1.3
+ * @version     1.4
  * @date        23/11/2025
  * @description Controlador responsável pelos endpoints da Pokédex via API.
  */

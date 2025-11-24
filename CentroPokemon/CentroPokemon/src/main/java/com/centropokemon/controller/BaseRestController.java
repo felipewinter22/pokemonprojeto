@@ -3,7 +3,7 @@
  * ---------------------------------------
  * @file        BaseRestController.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
- * @version     1.0
+ * @version     1.2
  * @date        23/11/2025
  * @description Classe base abstrata para controllers REST do Centro Pokémon.
  *              Fornece configurações comuns e métodos utilitários para respostas HTTP.
