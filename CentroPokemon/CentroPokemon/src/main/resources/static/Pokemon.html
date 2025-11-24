@@ -33,8 +33,8 @@
                 <ul>
                     <li><a href="/Pokemon.html#inicio" class="active">Início</a></li>
                     <li><a href="/pokedex">Pokédex</a></li>
-                    <li><a href="/centro#centro">Centro de Cura</a></li>
-                    <li><a href="/sobre#sobre">Sobre</a></li>
+                    <li><a href="/Pokemon.html#centro">Centro de Cura</a></li>
+                    <li><a href="/Pokemon.html#sobre">Sobre</a></li>
                 </ul>
             </nav>
         </div>
@@ -240,7 +240,7 @@
     <!-- @scripts   JavaScript externo para animações -->
     <script src="/js/animacoes.js"></script>
     <script>
-        const API_BASE_TREINADORES = '/CentroPokemon/api/treinadores';
+        const API_BASE_TREINADORES = '/api/treinadores';
         const TRAINER_ID_KEY = 'treinador_id';
         const trainerId = localStorage.getItem(TRAINER_ID_KEY);
         const pokemonSelect = document.getElementById('pokemon-select');
@@ -286,20 +286,27 @@
             }
             for (const c of consultas) {
                 const card = document.createElement('div');
-                card.className = 'consulta-item';
+                card.className = 'consulta-card';
                 const dt = new Date(c.dataHora);
-                const dtStr = dt.toLocaleString('pt-BR');
+                const dia = String(dt.getDate()).padStart(2, '0');
+                const mes = String(dt.getMonth() + 1).padStart(2, '0');
+                const hora = String(dt.getHours()).padStart(2, '0');
+                const min = String(dt.getMinutes()).padStart(2, '0');
+                const dataFormatada = `${dia}/${mes}`;
+                const horaFormatada = `${hora}:${min}`;
+                const tipoMap = {'CONSULTA':'Consulta','VACINACAO':'Vacinação','CHECKUP':'Check-up'};
+                const tipoTraduzido = tipoMap[c.tipo] || c.tipo;
                 card.innerHTML = `
-                    <div class="consulta-header">
-                        <span class="consulta-tipo">${c.tipo}</span>
-                        <span class="consulta-data">${dtStr}</span>
+                    <div class="consulta-sprite">
+                        <img src="${c.pokemonSpriteUrl}" alt="${c.pokemonNome}" onerror="this.src='/imagens/pokebola.png'" />
                     </div>
-                    <div class="consulta-body">
-                        <div class="consulta-pokemon">
-                            <img src="${c.pokemonSpriteUrl}" alt="${c.pokemonNome}" />
-                            <span>${c.pokemonNome}</span>
+                    <div class="consulta-info">
+                        <div class="consulta-titulo">${c.pokemonNome}, ${tipoTraduzido}</div>
+                        <div class="consulta-data-hora">
+                            <span class="data-badge">📅 ${dataFormatada}</span>
+                            <span class="hora-badge">🕐 ${horaFormatada}</span>
                         </div>
-                        ${c.observacoes ? `<div class="consulta-obs">${c.observacoes}</div>` : ''}
+                        ${c.observacoes ? `<div class="consulta-obs">💬 ${c.observacoes}</div>` : ''}
                     </div>
                 `;
                 consultasGrid.appendChild(card);
@@ -326,15 +333,30 @@
                 setAlert('error', 'Preencha Pokémon, Tipo e Data/Hora.');
                 return;
             }
+            const dataHora = new Date(dataHoraStr);
+            if (dataHora < new Date()) {
+                setAlert('error', 'A data da consulta não pode estar no passado.');
+                return;
+            }
             const body = { pokemonId, tipo, dataHora: dataHoraStr, observacoes };
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
             try {
                 await fetchJson(`${API_BASE_TREINADORES}/${trainerId}/consultas`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
                 });
-                setAlert('success', 'Consulta agendada com sucesso.');
+                setAlert('success', '✅ Consulta agendada com sucesso!');
+                document.getElementById('tipo-consulta').value = 'CONSULTA';
+                document.getElementById('datahora-consulta').value = '';
+                document.getElementById('obs-consulta').value = '';
                 await carregarConsultas();
             } catch (err) {
-                setAlert('error', 'Não foi possível agendar.');
+                const msg = String(err.message || '');
+                if (msg === '404') setAlert('error', 'Pokémon não encontrado.');
+                else if (msg === '409') setAlert('error', 'Já existe uma consulta agendada para este horário.');
+                else setAlert('error', 'Não foi possível agendar. Tente novamente.');
+            } finally {
+                submitBtn.disabled = false;
             }
         }
 
