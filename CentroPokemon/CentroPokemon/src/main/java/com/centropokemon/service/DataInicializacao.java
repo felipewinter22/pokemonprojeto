@@ -198,7 +198,8 @@ public class DataInicializacao {
         // Se tem treinador, sempre cria um novo registro para não sobrescrever Pokémon de outros treinadores
         Optional<Pokemon> existente = Optional.empty();
         if (pokemon.getTreinador() == null) {
-            existente = pokemonRepository.findByPokeApiId(pokemon.getPokeApiId());
+            // Busca apenas Pokémon da Pokédex (sem treinador) para evitar conflito com Pokémon de treinadores
+            existente = pokemonRepository.findByPokeApiIdAndTreinadorIsNull(pokemon.getPokeApiId());
         }
         Pokemon alvo;
         if (existente.isPresent()) {

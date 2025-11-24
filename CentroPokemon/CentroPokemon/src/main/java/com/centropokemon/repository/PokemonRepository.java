@@ -47,6 +47,15 @@ public interface PokemonRepository extends JpaRepository<Pokemon, Integer> {
     Optional<Pokemon> findByPokeApiId(Integer pokeApiId);
 
     /**
+     * Busca um Pokémon da Pokédex (sem treinador) pelo identificador da PokeAPI.
+     * Usado para buscar/atualizar Pokémon globais da Pokédex.
+     *
+     * @param pokeApiId identificador da PokeAPI
+     * @return Optional com o Pokémon da Pokédex, se encontrado
+     */
+    Optional<Pokemon> findByPokeApiIdAndTreinadorIsNull(Integer pokeApiId);
+
+    /**
      * Lista todos os Pokémon cadastrados por um treinador.
      * @param treinadorId identificador do treinador
      * @return lista de Pokémon pertencentes ao treinador
