@@ -12,14 +12,14 @@ package com.centropokemon.controller;
 
 import com.centropokemon.model.Consulta;
 import com.centropokemon.service.ConsultaService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@RequestMapping("/CentroPokemon/api/treinadores/{treinadorId}/consultas")
+@RestController
+@RequestMapping("/api/treinadores/{treinadorId}/consultas")
 public class ConsultaController extends BaseRestController {
     private final ConsultaService service;
 
@@ -61,7 +61,11 @@ public class ConsultaController extends BaseRestController {
         }
         LocalDateTime dt;
         try { 
-            dt = LocalDateTime.parse(req.dataHora); 
+            dt = LocalDateTime.parse(req.dataHora);
+            // Valida se a data não está no passado
+            if (dt.isBefore(LocalDateTime.now())) {
+                return badRequest();
+            }
         } catch (Exception e) { 
             return badRequest(); 
         }

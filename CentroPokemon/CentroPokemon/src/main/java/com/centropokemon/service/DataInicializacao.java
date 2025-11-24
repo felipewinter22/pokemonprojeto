@@ -17,8 +17,6 @@ import com.centropokemon.model.PokemonDescricao;
 import com.centropokemon.model.PokemonStats;
 import com.centropokemon.model.Tipo;
 import com.centropokemon.repository.PokemonRepository;
-import com.centropokemon.repository.PokemonStatsRepository;
-import com.centropokemon.repository.PokemonDescricaoRepository;
 import com.centropokemon.repository.TipoRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -75,16 +73,12 @@ public class DataInicializacao {
      */
     public DataInicializacao(
             PokemonRepository pokemonRepository,
-            TipoRepository tipoRepository,
-            PokemonStatsRepository statsRepository,
-            PokemonDescricaoRepository descricaoRepository
+            TipoRepository tipoRepository
     ) {
         this.http = new RestTemplate();
         this.mapper = new ObjectMapper();
         this.pokemonRepository = pokemonRepository;
         this.tipoRepository = tipoRepository;
-        this.statsRepository = statsRepository;
-        this.descricaoRepository = descricaoRepository;
     }
 
     /**
@@ -109,6 +103,29 @@ public class DataInicializacao {
         pokemon.setPokeApiId(id);
         pokemon.setNomeEn(nomeEn);
         pokemon.setSpriteUrl(spriteUrl);
+        
+        // Extrai altura e peso da API (vêm em decímetros e hectogramas)
+        int heightDecimeters = pokemonNode.path("height").asInt(0);
+        int weightHectograms = pokemonNode.path("weight").asInt(0);
+        if (heightDecimeters > 0) {
+            pokemon.setAltura(heightDecimeters / 10.0); // Converte para metros
+        }
+        if (weightHectograms > 0) {
+            pokemon.setPeso(weightHectograms / 10.0); // Converte para kg
+        }
+        
+        // Extrai habilidades
+        List<String> habilidades = new ArrayList<>();
+        JsonNode abilitiesNode = pokemonNode.path("abilities");
+        if (abilitiesNode.isArray()) {
+            for (JsonNode abilityNode : abilitiesNode) {
+                String abilityName = abilityNode.path("ability").path("name").asText();
+                if (abilityName != null && !abilityName.isBlank()) {
+                    habilidades.add(abilityName);
+                }
+            }
+        }
+        pokemon.setHabilidades(habilidades);
 
         List<Tipo> tipos = extrairTipos(pokemonNode.path("types"));
         pokemon.setTipos(resolverTipos(tipos));
@@ -162,8 +179,6 @@ public class DataInicializacao {
     private final ObjectMapper mapper;
     private final PokemonRepository pokemonRepository;
     private final TipoRepository tipoRepository;
-    private final PokemonStatsRepository statsRepository;
-    private final PokemonDescricaoRepository descricaoRepository;
 
     private List<Tipo> resolverTipos(List<Tipo> tipos) {
         List<Tipo> resolvidos = new ArrayList<>();
@@ -179,9 +194,15 @@ public class DataInicializacao {
     }
 
     private Pokemon salvarOuAtualizarPokemon(Pokemon pokemon) {
-        Optional<Pokemon> existente = pokemonRepository.findByPokeApiId(pokemon.getPokeApiId());
+        // Busca apenas se o Pokémon não tem treinador (é da Pokédex global)
+        // Se tem treinador, sempre cria um novo registro para não sobrescrever Pokémon de outros treinadores
+        Optional<Pokemon> existente = Optional.empty();
+        if (pokemon.getTreinador() == null) {
+            existente = pokemonRepository.findByPokeApiId(pokemon.getPokeApiId());
+        }
         Pokemon alvo;
         if (existente.isPresent()) {
+            // SEMPRE atualiza os dados da Pokédex com as informações mais recentes da API
             alvo = existente.get();
             alvo.setNomeEn(pokemon.getNomeEn());
             alvo.setNomePt(pokemon.getNomePt());
@@ -189,6 +210,9 @@ public class DataInicializacao {
             alvo.setTipos(pokemon.getTipos());
             alvo.setVidaMaxima(pokemon.getVidaMaxima());
             alvo.setVidaAtual(pokemon.getVidaAtual());
+            alvo.setAltura(pokemon.getAltura());
+            alvo.setPeso(pokemon.getPeso());
+            alvo.setHabilidades(pokemon.getHabilidades());
             if (pokemon.getStats() != null) {
                 PokemonStats stats = alvo.getStats();
                 if (stats == null) {

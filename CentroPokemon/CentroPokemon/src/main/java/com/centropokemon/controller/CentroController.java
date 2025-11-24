@@ -19,7 +19,8 @@ import java.util.List;
 import java.util.Map;
 
 
-@RequestMapping("/CentroPokemon/api/centro")
+@RestController
+@RequestMapping("/api/centro")
 public class CentroController extends BaseRestController {
 
     private final CentroService centro;

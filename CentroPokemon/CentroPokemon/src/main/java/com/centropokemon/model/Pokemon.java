@@ -58,12 +58,12 @@ public class Pokemon {
     private Integer vidaMaxima;
 
     /** Relacionamento com descrições do Pokémon. */
-    @OneToMany(mappedBy = "pokemon", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "pokemon", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JsonManagedReference("descricao-pokemon")
     private List<PokemonDescricao> descricoes;
 
     /** Relacionamento com tipos do Pokémon. */
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "pokemon_tipos",
         joinColumns = @JoinColumn(name = "pokemon_id"),
@@ -72,7 +72,7 @@ public class Pokemon {
     private List<Tipo> tipos;
 
     /** Relacionamento com stats do Pokémon. */
-    @OneToOne(mappedBy = "pokemon", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "pokemon", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JsonManagedReference("stats-pokemon")
     private PokemonStats stats;
 

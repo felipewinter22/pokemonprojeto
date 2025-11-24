@@ -21,7 +21,7 @@ import com.centropokemon.model.Pokemon;
  * Exponde endpoints para consulta de Pokémon via API.
  */
 @RestController
-@RequestMapping({"/CentroPokemon/api/pokemons", "/api/pokemons"})
+@RequestMapping("/api/pokemons")
 public class PokedexController extends BaseRestController {
 
     private final PokedexService service;

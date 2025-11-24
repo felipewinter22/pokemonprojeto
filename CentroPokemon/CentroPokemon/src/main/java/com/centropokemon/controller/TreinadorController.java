@@ -14,7 +14,6 @@ package com.centropokemon.controller;
 import com.centropokemon.model.Treinador;
 import com.centropokemon.service.TreinadorService;
 import com.centropokemon.service.CadastroPokemonService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -23,7 +22,8 @@ import org.springframework.dao.DataIntegrityViolationException;
  * Controlador REST para o ciclo de vida do {@link Treinador}.
  * Exponde endpoints para cadastro e login.
  */
-@RequestMapping("/CentroPokemon/api/treinadores")
+@RestController
+@RequestMapping("/api/treinadores")
 public class TreinadorController extends BaseRestController {
 
     private final TreinadorService service;

@@ -14,13 +14,13 @@
  */
 const PokedexAnime = (() => {
     const config = {
-        apiBaseUrl: '/CentroPokemon/api/pokemons',
+        apiBaseUrl: '/api/pokemons',
         totalPokemon: 898,
         localStorageKey: 'pokedex_anime_stats',
         defaultPokemon: 25,
         searchCountsKey: 'pokedex_anime_search_counts',
         recentKey: 'pokedex_anime_recent',
-        trainerApiBaseUrl: '/CentroPokemon/api/treinadores',
+        trainerApiBaseUrl: '/api/treinadores',
         trainerIdKey: 'treinador_id'
     };
 
@@ -160,6 +160,10 @@ const PokedexAnime = (() => {
     };
 
     const updateSidebar = () => {
+        console.log('[Pokedex] updateSidebar chamado');
+        console.log('[Pokedex] recentViewed:', state.recentViewed);
+        console.log('[Pokedex] elements.recentList:', elements.recentList);
+        
         if (elements.popularList) {
             const entries = Object.entries(state.searchCounts)
                 .map(([id, info]) => ({ id, name: info.name || `#${String(id).padStart(3,'0')}`, count: info.count }))
@@ -173,12 +177,16 @@ const PokedexAnime = (() => {
             `).join('');
         }
         if (elements.recentList) {
-            elements.recentList.innerHTML = state.recentViewed.slice(0,10).map(r => `
+            const html = state.recentViewed.slice(0,10).map(r => `
                 <li>
                     <span>${r.name}</span>
                     <a href="/pokedex-anime.html#${r.id}" class="pokedex-link">Ver</a>
                 </li>
             `).join('');
+            console.log('[Pokedex] HTML gerado para recent:', html);
+            elements.recentList.innerHTML = html;
+        } else {
+            console.warn('[Pokedex] elements.recentList não encontrado!');
         }
     };
     const renderCapturedGrid = async () => {
@@ -215,9 +223,16 @@ const PokedexAnime = (() => {
     };
 
     const fetchJson = async (url) => {
+        console.log('[Pokedex] Buscando:', url);
         const res = await fetch(url);
-        if (!res.ok) throw new Error('Erro na requisição');
-        return res.json();
+        console.log('[Pokedex] Status:', res.status, res.statusText);
+        if (!res.ok) {
+            console.error('[Pokedex] Erro na requisição:', res.status, res.statusText);
+            throw new Error(`Erro na requisição: ${res.status}`);
+        }
+        const data = await res.json();
+        console.log('[Pokedex] Dados recebidos:', data);
+        return data;
     };
 
     const postJson = async (url, body) => {
@@ -287,6 +302,9 @@ const PokedexAnime = (() => {
             updateSidebar();
             renderCapturedGrid();
         } catch (error) {
+            // Log do erro para debug
+            console.error('[Pokedex] Erro ao carregar Pokémon:', error);
+            console.error('[Pokedex] Identifier:', identifier);
             // Silencia erro visualmente - apenas limpa a tela
             clearCurrentPokemon();
         } finally {
@@ -518,12 +536,27 @@ const PokedexAnime = (() => {
         console.debug('Pokedex:', message);
     };
 
+    const renderTip = () => {
+        const el = document.getElementById('tip-card');
+        if (!el) return;
+        const tipMessages = [
+            'Dica: use filtros por tipo para descobrir novos!',
+            'Curiosidade: Pikachu é #025 na Pokédex.',
+            'Dica: clique em Aleatório para explorar.',
+            'Curiosidade: tipos água são ótimos contra fogo!',
+            'Dica: cadastre para montar sua coleção.'
+        ];
+        const msg = tipMessages[Math.floor(Math.random() * tipMessages.length)];
+        el.textContent = msg;
+    };
+
     return {
         init,
         loadPokemon,
         loadRandomPokemon,
         clearCurrentPokemon,
-        registerPokemon
+        registerPokemon,
+        showNotification
     };
 })();
 
@@ -533,24 +566,9 @@ try {
     const success = JSON.parse(localStorage.getItem('pokedex_register_success') || 'null');
     if (success && success.name) {
         localStorage.removeItem('pokedex_register_success');
-        setTimeout(() => { try { PokedexAnime && PokedexAnime.init && showNotification(`🎉 ${success.name} cadastrado!`); } catch {} }, 300);
+        setTimeout(() => { try { PokedexAnime && PokedexAnime.showNotification && PokedexAnime.showNotification(`🎉 ${success.name} cadastrado!`); } catch {} }, 300);
     }
 } catch {}
-
-const tipMessages = [
-    'Dica: use filtros por tipo para descobrir novos!',
-    'Curiosidade: Pikachu é #025 na Pokédex.',
-    'Dica: clique em Aleatório para explorar.',
-    'Curiosidade: tipos água são ótimos contra fogo!',
-    'Dica: cadastre para montar sua coleção.'
-];
-
-const renderTip = () => {
-    const el = document.getElementById('tip-card');
-    if (!el) return;
-    const msg = tipMessages[Math.floor(Math.random() * tipMessages.length)];
-    el.textContent = msg;
-};
 
 const style = document.createElement('style');
 style.textContent = `
@@ -624,8 +642,9 @@ document.head.appendChild(style);
     const saveDaily = () => { try { localStorage.setItem(daily.key, JSON.stringify(daily.data)); } catch {} };
 
     const renderDailyMissions = () => {
-        if (!elements.dailyList || !daily.data) return;
-        elements.dailyList.innerHTML = daily.data.missions.map(m => {
+        const dailyList = document.getElementById('daily-list');
+        if (!dailyList || !daily.data) return;
+        dailyList.innerHTML = daily.data.missions.map(m => {
             const pct = Math.min(100, Math.round((m.progress / m.target) * 100));
             return `<li>
                 <div>${m.label} (${m.progress}/${m.target})</div>

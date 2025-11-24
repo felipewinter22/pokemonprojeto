@@ -12,14 +12,12 @@
 package com.centropokemon.controller;
 
 import com.centropokemon.model.Pokemon;
-import com.centropokemon.model.Treinador;
 import com.centropokemon.service.CadastroPokemonService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Controlador REST para gerenciar a coleção de Pokémon de um treinador.
@@ -30,7 +28,8 @@ import java.util.Optional;
  * @version 1.2
  * @since 1.0
  */
-@RequestMapping("/CentroPokemon/api/treinadores/{treinadorId}/pokemons")
+@RestController
+@RequestMapping("/api/treinadores/{treinadorId}/pokemons")
 public class PokemonDoTreinadorController extends BaseRestController {
 
     private final CadastroPokemonService cadastro;
