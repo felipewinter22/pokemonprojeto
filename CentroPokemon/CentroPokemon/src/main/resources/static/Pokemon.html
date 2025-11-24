@@ -49,97 +49,119 @@
     <main>
         <div class="pagina ativa" id="inicio">
             <div class="pagina-content">
-                <div class="classic-layout">
-                    <aside class="sidebar">
-                        <div class="sidebar-section">
-                            <h4>Menu Rápido</h4>
-                            <div class="sidebar-menu">
-                                <a href="/centro#centro" class="sidebar-btn"><span class="menu-icon">🏥</span><span>Agendar Consulta</span></a>
-                                <a href="/pokedex" class="sidebar-btn"><span class="menu-icon">📓</span><span>Ver Pokédex</span></a>
-                                <a href="/sobre#sobre" class="sidebar-btn"><span class="menu-icon">🧑‍⚕️</span><span>Falar com Especialista</span></a>
+                <!-- Hero Section -->
+                <div class="inicio-hero">
+                    <div class="hero-content">
+                        <h2>Bem-vindo ao Centro Pokémon</h2>
+                        <p>Cuidados especializados para seus parceiros de aventura</p>
+                    </div>
+                    <img src="/imagens/pikachu-pokedex.png" alt="Pikachu" class="hero-pikachu">
+                </div>
+
+                <!-- Atalhos Rápidos em Bloquinhos -->
+                <div class="atalhos-rapidos">
+                    <a href="/Pokemon.html#centro" class="atalho-box atalho-vermelho">
+                        <div class="atalho-icon">🏥</div>
+                        <div class="atalho-titulo">Centro de Cura</div>
+                        <div class="atalho-desc">Cure seus Pokémon</div>
+                    </a>
+                    <a href="/pokedex" class="atalho-box atalho-azul">
+                        <div class="atalho-icon">📓</div>
+                        <div class="atalho-titulo">Pokédex</div>
+                        <div class="atalho-desc">Consulte informações</div>
+                    </a>
+                    <a href="/cadastro-pokemon.html" class="atalho-box atalho-amarelo">
+                        <div class="atalho-icon">➕</div>
+                        <div class="atalho-titulo">Cadastrar</div>
+                        <div class="atalho-desc">Adicione Pokémon</div>
+                    </a>
+                    <a href="/Pokemon.html#sobre" class="atalho-box atalho-verde">
+                        <div class="atalho-icon">ℹ️</div>
+                        <div class="atalho-titulo">Sobre</div>
+                        <div class="atalho-desc">Conheça o centro</div>
+                    </a>
+                </div>
+
+                <!-- Grid Principal -->
+                <div class="inicio-grid">
+                    <!-- Card de Estatísticas -->
+                    <div class="inicio-card card-stats">
+                        <h3>📊 Estatísticas</h3>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-valor">98%</div>
+                                <div class="stat-label">Recuperação</div>
                             </div>
-                        </div>
-                        <div class="sidebar-section">
-                            <h4>Estatísticas</h4>
-                            <div class="stats-bubble"><span class="stat-number">98%</span><span class="stat-label">Taxa de recuperação</span></div>
-                            <div class="stats-bubble"><span class="stat-number">15min</span><span class="stat-label">Tempo médio de espera</span></div>
-                            <div class="stats-bubble"><span class="stat-number">500+</span><span class="stat-label">Espécies atendidas</span></div>
-                        </div>
-                        <div class="sidebar-section">
-                            <h4>Destaque do dia</h4>
-                            <div class="pokemon-destaque">
-                                <img class="destaque-sprite" src="/imagens/pikachu-pokedex.png" alt="Pikachu">
-                                <div class="destaque-info">
-                                    <h5>Pikachu</h5>
-                                    <p>Estado: Estável</p>
-                                    <div class="hp-bar"><div class="hp-fill" style="width:85%"></div></div>
-                                    <small>ID: #0025</small>
-                                </div>
+                            <div class="stat-item">
+                                <div class="stat-valor">15min</div>
+                                <div class="stat-label">Tempo Médio</div>
                             </div>
-                        </div>
-                    </aside>
-                    <div class="main-content">
-                        <div class="welcome-banner">
-                            <div class="banner-content">
-                                <h3>Bem-vindo ao Centro Médico Pokémon</h3>
-                                <p>Cuidados especializados 24/7 para seus parceiros</p>
-                                <p>Agende consultas, acompanhe prontuários e acesse protocolos de emergência</p>
+                            <div class="stat-item">
+                                <div class="stat-valor">500+</div>
+                                <div class="stat-label">Espécies</div>
                             </div>
-                            <img class="pikachu-welcome" src="/imagens/pikachu-pokedex.png" alt="Pikachu">
-                        </div>
-                        <section class="missoes-container">
-                            <h4>Missões do dia</h4>
-                            <div class="missoes-grid">
-                                <div class="missao-card">
-                                    <span class="missao-icon">📅</span>
-                                    <h5>Agendar Check-up</h5>
-                                    <p>Garanta o bem-estar do seu Pokémon</p>
-                                    <div class="missao-progresso">
-                                        <div class="progresso-bar"><div class="progresso-fill" style="width:40%"></div></div>
-                                        <span>40%</span>
-                                    </div>
-                                </div>
-                                <div class="missao-card">
-                                    <span class="missao-icon">💉</span>
-                                    <h5>Atualizar Vacinação</h5>
-                                    <p>Consulte o calendário recomendado</p>
-                                    <div class="missao-progresso">
-                                        <div class="progresso-bar"><div class="progresso-fill" style="width:60%"></div></div>
-                                        <span>60%</span>
-                                    </div>
-                                </div>
-                                <div class="missao-card">
-                                    <span class="missao-icon">🧪</span>
-                                    <h5>Exames de Rotina</h5>
-                                    <p>Agende exames preventivos</p>
-                                    <div class="missao-progresso">
-                                        <div class="progresso-bar"><div class="progresso-fill" style="width:20%"></div></div>
-                                        <span>20%</span>
-                                    </div>
-                                </div>
+                            <div class="stat-item">
+                                <div class="stat-valor">24/7</div>
+                                <div class="stat-label">Disponível</div>
                             </div>
-                        </section>
-                        <div class="tv-container">
-                            <h4>TV da Sala de Espera</h4>
-                            <div class="tv-frame">
-                                <div class="tv-screen">
-                                    <video class="pokemon-video" controls muted playsinline>
-                                        <source src="/videos/EP 001 - Pokémon Eu Escolho Você!.mkv" type="video/x-matroska">
-                                        Seu navegador não suporta a reprodução de vídeo.
-                                    </video>
-                                </div>
-                            </div>
-                            <div class="tv-controls">
-                                <p>Programação: EP 001 - Pokémon Eu Escolho Você!</p>
-                                <div class="tv-info"><span class="tv-channel">Canal Pokémon</span><span class="tv-time">Episódio Clássico</span></div>
-                            </div>
-                        </div>
-                        <div class="medical-actions">
-                            <a href="/centro#centro" class="btn primary"><span>🏥</span> Agendar Consulta</a>
-                            <a href="/pokedex" class="btn secondary"><span>📓</span> Ver Pokédex Médica</a>
-                            <a href="/sobre#sobre" class="btn secondary"><span>🧑‍⚕️</span> Falar com Especialista</a>
                         </div>
                     </div>
+
+                    <!-- Card de Recursos -->
+                    <div class="inicio-card card-recursos">
+                        <h3>🌟 Recursos</h3>
+                        <div class="recursos-lista">
+                            <div class="recurso-item">
+                                <span class="recurso-icon">💊</span>
+                                <div class="recurso-texto">
+                                    <strong>Cura Instantânea</strong>
+                                    <small>Restaure HP com um clique</small>
+                                </div>
+                            </div>
+                            <div class="recurso-item">
+                                <span class="recurso-icon">📅</span>
+                                <div class="recurso-texto">
+                                    <strong>Agendamento</strong>
+                                    <small>Marque consultas facilmente</small>
+                                </div>
+                            </div>
+                            <div class="recurso-item">
+                                <span class="recurso-icon">🔍</span>
+                                <div class="recurso-texto">
+                                    <strong>Busca Avançada</strong>
+                                    <small>Encontre qualquer Pokémon</small>
+                                </div>
+                            </div>
+                            <div class="recurso-item">
+                                <span class="recurso-icon">💾</span>
+                                <div class="recurso-texto">
+                                    <strong>Histórico</strong>
+                                    <small>Acompanhe seu progresso</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card de Vídeo (Menor) -->
+                <div class="inicio-card card-video-compacto">
+                    <h3>📺 Sala de Espera</h3>
+                    <div class="video-wrapper-compacto">
+                        <video class="inicio-video" controls>
+                            <source src="/videos/EP 001 - Pokémon Eu Escolho Você!.mkv" type="video/mp4">
+                            Seu navegador não suporta reprodução de vídeo.
+                        </video>
+                    </div>
+                    <div class="video-info">
+                        <span>🎬 EP 001 - Pokémon Eu Escolho Você!</span>
+                    </div>
+                </div>
+
+                <!-- Decoração com Pokébolas -->
+                <div class="decoracao-pokebolas">
+                    <img src="/imagens/pokebola.png" alt="Pokébola" class="pokebola-deco pokebola-1">
+                    <img src="/imagens/pokebola.png" alt="Pokébola" class="pokebola-deco pokebola-2">
+                    <img src="/imagens/Bag_Master_Ball_SV_Sprite.png" alt="Master Ball" class="pokebola-deco pokebola-3">
                 </div>
             </div>
         </div>
