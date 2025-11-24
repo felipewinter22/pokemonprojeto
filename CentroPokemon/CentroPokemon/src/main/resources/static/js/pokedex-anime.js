@@ -438,14 +438,93 @@ const PokedexAnime = (() => {
 
     const registerPokemon = async () => {
         if (!state.currentPokemon) { showError('Nenhum Pokémon para cadastrar!'); return; }
-        const trainerId = await ensureTrainerId();
-        if (!trainerId) { showError('Não foi possível autenticar o treinador'); return; }
+        const trainerId = localStorage.getItem(config.trainerIdKey);
+        if (!trainerId) { 
+            showNotification('Faça login para cadastrar Pokémon!');
+            setTimeout(() => { window.location.href = '/login.html'; }, 1500);
+            return; 
+        }
+        
+        showLoadingState(true);
+        
         try {
-            localStorage.setItem('pokedex_register_draft', JSON.stringify(state.currentPokemon));
-        } catch {}
-        document.body.classList.add('page-leave');
-        document.body.classList.add('page-leave-active');
-        setTimeout(() => { window.location.href = '/pokedex/cadastrar'; }, 200);
+            const p = state.currentPokemon;
+            const id = p.pokeApiId || p.id;
+            
+            console.log('[Register] Pokémon atual:', p);
+            console.log('[Register] ID:', id);
+            console.log('[Register] Sprite original:', p.spriteUrl);
+            
+            // Pega a imagem que está sendo exibida na Pokédex neste momento
+            const displayedSprite = elements.pokemonSprite ? elements.pokemonSprite.src : '';
+            console.log('[Register] Sprite exibido na tela:', displayedSprite);
+            
+            // Garante que a spriteUrl está correta - prioriza a que está sendo exibida
+            let sprite = displayedSprite || p.spriteUrl || '';
+            if (!sprite || !sprite.startsWith('http')) {
+                sprite = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+            }
+            
+            console.log('[Register] Sprite final:', sprite);
+            
+            // Prepara os dados para cadastro
+            const body = {
+                pokeApiId: id,
+                nomePt: p.nomePt || p.nomeEn || '',
+                nomeEn: p.nomeEn || p.nomePt || '',
+                spriteUrl: sprite,
+                vidaAtual: 100,
+                vidaMaxima: 100,
+                nivel: 1,
+                habilidades: Array.isArray(p.habilidades) ? p.habilidades : [],
+                tipos: Array.isArray(p.tipos) ? p.tipos.map(t => t.nomeEn || t.nomePt || t.nome || '').filter(Boolean) : []
+            };
+            
+            console.log('[Register] Body enviado:', body);
+            
+            // Cadastra direto no backend
+            const response = await fetch(`${config.trainerApiBaseUrl}/${trainerId}/pokemons`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            
+            if (!response.ok) {
+                if (response.status === 409) {
+                    showNotification('Você já possui este Pokémon!');
+                    return;
+                }
+                throw new Error('Erro ao cadastrar');
+            }
+            
+            const result = await response.json();
+            console.log('[Register] Resposta do servidor:', result);
+            
+            // Salva dados para a tela de sucesso - usa o sprite que veio do servidor
+            const successData = {
+                nome: result.nomePt || p.nomePt || p.nomeEn || '',
+                sprite: result.spriteUrl || sprite,
+                id: result.pokeApiId || id
+            };
+            
+            console.log('[Register] Dados de sucesso:', successData);
+            localStorage.setItem('pokedex_register_success', JSON.stringify(successData));
+            
+            // Atualiza estatísticas
+            state.caughtPokemon.add(id);
+            saveStats();
+            
+            // Redireciona para tela de sucesso
+            document.body.classList.add('page-leave');
+            document.body.classList.add('page-leave-active');
+            setTimeout(() => { window.location.href = '/pokedex/cadastrar'; }, 200);
+            
+        } catch (error) {
+            showNotification('Erro ao cadastrar Pokémon. Tente novamente.');
+            console.error('Erro ao cadastrar:', error);
+        } finally {
+            showLoadingState(false);
+        }
     };
 
     const handleTypeFilter = (type) => {

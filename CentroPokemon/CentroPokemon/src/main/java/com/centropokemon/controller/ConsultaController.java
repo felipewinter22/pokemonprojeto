@@ -3,7 +3,7 @@
  * ---------------------------------------
  * @file        ConsultaController.java
  * @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
- * @version     1.1
+ * @version     1.2
  * @date        23/11/2025
  * @description Endpoints REST para agendar e listar consultas médicas dos
  *              Pokémon de um treinador.

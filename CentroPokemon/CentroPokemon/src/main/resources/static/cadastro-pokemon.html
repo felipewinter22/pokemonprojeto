@@ -1,183 +1,211 @@
 <!--
-    Centro Pokémon - Adicionar Pokémon à Coleção
-    =============================================
+    Centro Pokémon - Pokémon Cadastrado com Sucesso
+    ================================================
     @file        cadastro-pokemon.html
     @author      Gustavo Pigatto, Matheus Schvann, Alexandre Lampert, Mateus Stock, Felipe Winter
-    @version     1.1
+    @version     1.2
     @date        23/11/2025
-    @description Página para adicionar um Pokémon pesquisado na Pokédex à coleção do treinador.
-                 Os dados vêm pré-preenchidos da pesquisa, o usuário apenas confirma.
+    @description Página de sucesso após cadastrar um Pokémon.
+                 Mostra o Pokémon cadastrado com sua foto e nome.
 -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adicionar Pokémon - Centro Pokémon</title>
+    <title>Pokémon Cadastrado - Centro Pokémon</title>
     <link rel="stylesheet" href="/css/novo-style.css">
     <link rel="stylesheet" href="/css/pokedex-anime.css">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        .page-enter { opacity: 0; }
-        .page-enter-active { opacity: 1; transition: opacity .3s ease; }
+        .page-enter { opacity: 0; transform: scale(0.9); }
+        .page-enter-active { opacity: 1; transform: scale(1); transition: all .5s ease; }
         .page-leave { opacity: 1; }
         .page-leave-active { opacity: 0; transition: opacity .3s ease; }
-        .type-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: .5rem; }
-        .type-option { display: inline-flex; align-items: center; gap: .4rem; padding: .5rem .6rem; border: 2px solid var(--pokemon-blue); border-radius: 8px; background: var(--pokemon-white); cursor: pointer; font-size: .65rem; }
-        .type-option.active { background: var(--pokemon-yellow); }
-        .form-grid { display: grid; gap: .8rem; }
-        .img-preview { width: 120px; height: 120px; border: 3px solid var(--pokemon-black); border-radius: 10px; object-fit: contain; image-rendering: pixelated; background: #fff; }
-        .actions { display: flex; gap: .6rem; }
+        
+        .success-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .success-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 4px solid var(--pokemon-black);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .success-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: bounce 1s ease infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .success-title {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 1.2rem;
+            color: white;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .pokemon-display {
+            background: white;
+            border: 3px solid var(--pokemon-black);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .pokemon-sprite-large {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+            image-rendering: pixelated;
+            margin-bottom: 1rem;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2));
+        }
+        
+        .pokemon-name-large {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 1.5rem;
+            color: var(--pokemon-black);
+            margin-bottom: 0.5rem;
+        }
+        
+        .pokemon-id {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.9rem;
+            color: var(--pokemon-dark-gray);
+        }
+        
+        .success-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn-success {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.7rem;
+            padding: 1rem 1.5rem;
+            border: 3px solid var(--pokemon-black);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-success.primary {
+            background: var(--pokemon-yellow);
+            color: var(--pokemon-black);
+        }
+        
+        .btn-success.secondary {
+            background: white;
+            color: var(--pokemon-black);
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
     </style>
     <script>
-        const TRAINER_ID_KEY = 'treinador_id';
-        const REGISTER_DRAFT_KEY = 'pokedex_register_draft';
         const REGISTER_SUCCESS_KEY = 'pokedex_register_success';
-        const STATS_KEY = 'pokedex_anime_stats';
-        const API_BASE = '/api/treinadores';
-
-        function setAlert(el, type, text) {
-            el.className = 'alert';
-            if (!text) { el.textContent = ''; return; }
-            el.classList.add(type);
-            el.textContent = text;
-        }
-
-        function readDraft() {
-            try { return JSON.parse(localStorage.getItem(REGISTER_DRAFT_KEY) || 'null'); } catch { return null; }
-        }
-
-        function saveStatsCaught(pokeId) {
-            try {
-                const stats = JSON.parse(localStorage.getItem(STATS_KEY) || '{}');
-                const caught = new Set(stats.caught || []);
-                if (pokeId) caught.add(pokeId);
-                stats.caught = Array.from(caught);
-                stats.lastUpdated = new Date().toISOString();
-                localStorage.setItem(STATS_KEY, JSON.stringify(stats));
-            } catch {}
-        }
-
-        async function postJson(url, body) {
-            const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-            if (!res.ok) throw new Error(String(res.status));
-            return res.json();
-        }
-
-        function initTypes(root) {
-            const types = ['normal','fire','water','electric','grass','ice','fighting','poison','ground','flying','psychic','bug','rock','ghost','dragon','dark','steel','fairy'];
-            const grid = root.querySelector('#type-grid');
-            grid.innerHTML = '';
-            types.forEach(t => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'type-option';
-                btn.dataset.type = t;
-                btn.textContent = t.charAt(0).toUpperCase() + t.slice(1);
-                btn.addEventListener('click', () => { btn.classList.toggle('active'); });
-                grid.appendChild(btn);
-            });
-        }
-
-        function prefillForm(root, draft) {
-            if (!draft) return;
-            const nomeField = root.querySelector('#nome');
-            const nivelField = root.querySelector('#nivel');
-            const habilidadesField = root.querySelector('#habilidades');
-            const imgField = root.querySelector('#imagem');
-            const preview = root.querySelector('#img-preview');
-            const typeBtns = root.querySelectorAll('.type-option');
-            const tipos = Array.isArray(draft.tipos) ? draft.tipos.map(t => (t.nomeEn || t.nomePt || t.nome || '').toLowerCase()) : [];
-            if (nomeField) nomeField.value = draft.nomePt || draft.nomeEn || '';
-            if (nivelField) nivelField.value = 1;
-            if (habilidadesField) habilidadesField.value = '';
-            const id = draft.pokeApiId || draft.id || null;
-            // Usa spriteUrl do draft ou mantém vazio para o usuário preencher
-            const sprite = draft.spriteUrl || '';
-            if (imgField) imgField.value = sprite;
-            if (preview) preview.src = sprite;
-            typeBtns.forEach(btn => { if (tipos.includes(btn.dataset.type)) btn.classList.add('active'); });
-        }
-
-        /**
-         * Valida os dados do formulário antes de enviar
-         * @param {Document} root - Documento raiz
-         * @returns {Object|false} Dados validados ou false se inválido
-         */
-        function validateForm(root) {
-            const alertEl = root.querySelector('#alert');
-            const nome = root.querySelector('#nome').value.trim();
-            const nivel = parseInt(root.querySelector('#nivel').value, 10);
-            const img = root.querySelector('#imagem').value.trim();
-            const tiposSel = Array.from(root.querySelectorAll('.type-option.active')).map(b => b.dataset.type);
-            if (!nome) { setAlert(alertEl, 'error', 'Informe o nome do Pokémon'); return false; }
-            if (!tiposSel.length) { setAlert(alertEl, 'error', 'Selecione pelo menos um tipo'); return false; }
-            if (!Number.isFinite(nivel) || nivel < 1) { setAlert(alertEl, 'error', 'Informe um nível válido (>=1)'); return false; }
-            if (!img || !/^https?:\/\//i.test(img)) { setAlert(alertEl, 'error', 'Informe uma URL de imagem válida'); return false; }
-            setAlert(alertEl, '', '');
-            return { nome, nivel, img, tipos: tiposSel, habilidades: root.querySelector('#habilidades').value.trim() };
-        }
-
-        /**
-         * Processa o envio do formulário de cadastro
-         * Adiciona o Pokémon à coleção do treinador
-         * @param {Event} e - Evento de submit
-         */
-        async function handleSubmit(e) {
-            e.preventDefault();
-            const root = e.target.closest('form').ownerDocument;
-            const result = validateForm(root);
-            if (!result) return;
-            const trainerId = localStorage.getItem(TRAINER_ID_KEY);
-            const alertEl = root.querySelector('#alert');
-            if (!trainerId) { setAlert(alertEl, 'error', 'Faça login para adicionar Pokémon à sua coleção'); return; }
-            const draft = readDraft();
-            const id = draft && (draft.pokeApiId || draft.id) || null;
-            const body = {
-                pokeApiId: id,
-                nomePt: result.nome,
-                nomeEn: (draft && draft.nomeEn) || result.nome,
-                spriteUrl: result.img,
-                vidaAtual: 100,
-                vidaMaxima: 100,
-                nivel: result.nivel,
-                habilidades: result.habilidades ? result.habilidades.split(',').map(s => s.trim()).filter(Boolean) : [],
-                tipos: result.tipos
-            };
-            const submitBtn = root.querySelector('#submit-btn');
-            submitBtn.disabled = true;
-            setAlert(alertEl, '', '');
-            try {
-                await postJson(`${API_BASE}/${trainerId}/pokemons`, body);
-                saveStatsCaught(id);
-                localStorage.setItem(REGISTER_SUCCESS_KEY, JSON.stringify({ name: result.nome, id }));
-                document.body.classList.add('page-leave');
-                document.body.classList.add('page-leave-active');
-                setTimeout(() => { window.location.href = '/pokedex'; }, 250);
-            } catch (err) {
-                const msg = String(err.message || '');
-                if (msg === '409') {
-                    setAlert(alertEl, 'error', 'Você já possui este Pokémon na sua coleção!');
-                } else {
-                    setAlert(alertEl, 'error', 'Falha ao adicionar Pokémon. Tente novamente.');
-                }
-            } finally {
-                submitBtn.disabled = false;
-            }
-        }
 
         function init() {
             document.body.classList.add('page-enter');
-            setTimeout(() => { document.body.classList.add('page-enter-active'); }, 0);
-            initTypes(document);
-            const draft = readDraft();
-            prefillForm(document, draft);
-            const form = document.getElementById('cadastro-pokemon-form');
-            form.addEventListener('submit', handleSubmit);
-            const img = document.getElementById('imagem');
-            const preview = document.getElementById('img-preview');
-            img.addEventListener('input', () => { preview.src = img.value.trim(); });
+            setTimeout(() => { document.body.classList.add('page-enter-active'); }, 10);
+            
+            // Lê os dados do Pokémon cadastrado
+            try {
+                const successData = JSON.parse(localStorage.getItem(REGISTER_SUCCESS_KEY) || 'null');
+                
+                console.log('[Success Page] Dados recebidos:', successData);
+                
+                if (!successData) {
+                    // Se não há dados, redireciona para a Pokédex
+                    console.warn('[Success Page] Sem dados, redirecionando...');
+                    window.location.href = '/pokedex';
+                    return;
+                }
+                
+                // Preenche os dados na tela
+                const nameEl = document.getElementById('pokemon-name-display');
+                const spriteEl = document.getElementById('pokemon-sprite-display');
+                const idEl = document.getElementById('pokemon-id-display');
+                
+                if (nameEl) nameEl.textContent = successData.nome || 'Pokémon';
+                if (idEl) idEl.textContent = `#${String(successData.id || 0).padStart(3, '0')}`;
+                
+                if (spriteEl) {
+                    const id = successData.id || 0;
+                    console.log('[Success Page] ID do Pokémon:', id);
+                    
+                    // Lista de URLs para tentar, em ordem de prioridade
+                    const spriteUrls = [
+                        successData.sprite,
+                        `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
+                        `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`,
+                        `https://assets.pokemon.com/assets/cms2/img/pokedex/detail/${String(id).padStart(3, '0')}.png`,
+                        `https://img.pokemondb.net/artwork/large/${(successData.nome || '').toLowerCase()}.jpg`
+                    ].filter(url => url && url.length > 0);
+                    
+                    console.log('[Success Page] URLs para tentar:', spriteUrls);
+                    
+                    let currentIndex = 0;
+                    
+                    const tryNextSprite = () => {
+                        if (currentIndex >= spriteUrls.length) {
+                            console.error('[Success Page] Todas as URLs falharam');
+                            spriteEl.src = '/imagens/pokebola.png'; // Fallback final
+                            return;
+                        }
+                        
+                        const url = spriteUrls[currentIndex];
+                        console.log(`[Success Page] Tentando URL ${currentIndex + 1}/${spriteUrls.length}:`, url);
+                        spriteEl.src = url;
+                        currentIndex++;
+                    };
+                    
+                    spriteEl.onerror = () => {
+                        console.warn('[Success Page] Erro ao carregar sprite, tentando próxima...');
+                        tryNextSprite();
+                    };
+                    
+                    spriteEl.onload = () => {
+                        console.log('[Success Page] Sprite carregado com sucesso!');
+                    };
+                    
+                    // Inicia tentando a primeira URL
+                    tryNextSprite();
+                }
+                
+                // Limpa os dados após exibir
+                localStorage.removeItem(REGISTER_SUCCESS_KEY);
+                
+            } catch (error) {
+                console.error('[Success Page] Erro ao carregar dados:', error);
+                window.location.href = '/pokedex';
+            }
         }
+        
         document.addEventListener('DOMContentLoaded', init);
     </script>
 </head>
@@ -200,41 +228,22 @@
         </div>
     </header>
     <main>
-        <section class="cadastro-container">
-            <h2>Adicionar à Minha Coleção</h2>
-            <p style="text-align: center; color: var(--pokemon-dark-gray); font-size: 0.75rem; margin-bottom: 1rem;">
-                Confirme os dados do Pokémon que você deseja adicionar à sua coleção
-            </p>
-            <form id="cadastro-pokemon-form" class="form-grid"></form>
-                <div>
-                    <label>Nome do Pokémon</label>
-                    <input id="nome" type="text" required />
+        <section class="success-container">
+            <div class="success-card">
+                <div class="success-icon">🎉</div>
+                <h2 class="success-title">Pokémon Cadastrado!</h2>
+                
+                <div class="pokemon-display">
+                    <img id="pokemon-sprite-display" class="pokemon-sprite-large" src="" alt="Pokémon">
+                    <div class="pokemon-name-large" id="pokemon-name-display">Carregando...</div>
+                    <div class="pokemon-id" id="pokemon-id-display">#000</div>
                 </div>
-                <div>
-                    <label>Tipo(s)</label>
-                    <div id="type-grid" class="type-grid"></div>
+                
+                <div class="success-actions">
+                    <a href="/pokedex" class="btn-success primary">📓 Voltar à Pokédex</a>
+                    <a href="/Pokemon.html" class="btn-success secondary">🏠 Ir para Início</a>
                 </div>
-                <div>
-                    <label>Nível</label>
-                    <input id="nivel" type="number" min="1" value="1" required />
-                </div>
-                <div>
-                    <label>Habilidades</label>
-                    <input id="habilidades" type="text" placeholder="Separar por vírgulas" />
-                </div>
-                <div>
-                    <label>Imagem/Avatar (URL)</label>
-                    <div class="actions">
-                        <input id="imagem" type="url" required style="flex:1" />
-                        <img id="img-preview" class="img-preview" alt="Preview" />
-                    </div>
-                </div>
-                <div class="actions">
-                    <button id="submit-btn" type="submit" class="btn primary">✓ Adicionar à Coleção</button>
-                    <a href="/pokedex" class="btn secondary">✗ Cancelar</a>
-                </div>
-                <div id="alert" class="alert" role="alert"></div>
-            </form>
+            </div>
         </section>
     </main>
     <footer>
