@@ -14,7 +14,6 @@
 | [INSTALACAO_RAPIDA.md](INSTALACAO_RAPIDA.md) | Guia de instalação em 5 minutos | 10 |
 | [README_BD.md](README_BD.md) | Documentação completa do banco | 100+ |
 | [MODELO_LOGICO_NORMALIZADO.md](MODELO_LOGICO_NORMALIZADO.md) | Modelo detalhado e normalização | 50+ |
-| [REQUISITOS_ATENDIDOS.md](REQUISITOS_ATENDIDOS.md) | Checklist de requisitos | 40+ |
 | [INDEX.md](INDEX.md) | Este arquivo | 5 |
 
 ### Scripts SQL
@@ -43,7 +42,6 @@
 
 **Avançado:**
 - [README_BD.md#instalação](README_BD.md#instalação) 
-- Scripts individuais (01-07)
 
 ### 2. Modelo de Dados
 
@@ -58,8 +56,7 @@
 ### 3. Triggers
 
 **Documentação:**
-- [README_BD.md#triggers](README_BD.md#triggers) - Lista e exemplos
-- [REQUISITOS_ATENDIDOS.md#triggers](REQUISITOS_ATENDIDOS.md#5️⃣-triggers-para-integridade-e-auditoria-10) 
+- [README_BD.md#triggers](README_BD.md#triggers) 
 
 **Implementação:**
 - [03_triggers.sql](03_triggers.sql) 
@@ -71,7 +68,6 @@
 
 **Documentação:**
 - [README_BD.md#stored-procedures](README_BD.md#stored-procedures) 
-- [REQUISITOS_ATENDIDOS.md#procedures](REQUISITOS_ATENDIDOS.md#6️⃣-stored-procedures-para-regras-de-negócio-10) 
 
 **Implementação:**
 - [04_stored_procedures.sql](04_stored_procedures.sql) 
@@ -83,7 +79,6 @@
 
 **Documentação:**
 - [README_BD.md#views-e-relatórios](README_BD.md#views-e-relatórios) 
-- [REQUISITOS_ATENDIDOS.md#views](REQUISITOS_ATENDIDOS.md#2️⃣-implementação-dos-sqls-para-relatórios-com-junções-e-views-10) 
 
 **Implementação:**
 - [05_views_relatorios.sql](05_views_relatorios.sql) 
@@ -95,7 +90,6 @@
 
 **Documentação:**
 - [README_BD.md#usuários-e-permissões](README_BD.md#usuários-e-permissões) 
-- [REQUISITOS_ATENDIDOS.md#seguranca](REQUISITOS_ATENDIDOS.md#4️⃣-políticas-de-acesso-usuários-grupos-e-privilégios-10) 
 
 **Implementação:**
 - [06_politicas_acesso.sql](06_politicas_acesso.sql) 
@@ -106,7 +100,6 @@
 
 **Documentação:**
 - [README_BD.md#backup-e-restore](README_BD.md#backup-e-restore) 
-- [REQUISITOS_ATENDIDOS.md#backup](REQUISITOS_ATENDIDOS.md#7️⃣-backup-e-restore-10) 
 **Implementação:**
 - [07_backup_restore.sql](07_backup_restore.sql) 
 
@@ -153,9 +146,8 @@
 3. Configure cron: [INSTALACAO_RAPIDA.md#backup](INSTALACAO_RAPIDA.md#-configurar-backup-automático)
 
 ### Caso 6: Validar Requisitos
-1. Abra: [REQUISITOS_ATENDIDOS.md](REQUISITOS_ATENDIDOS.md)
-2. Verifique cada seção
-3. Execute testes: [08_testes_validacao.sql](08_testes_validacao.sql)
+1. Verifique cada seção
+2. Execute testes: [08_testes_validacao.sql](08_testes_validacao.sql)
 
 ---
 
@@ -194,9 +186,8 @@
 ## Para Professores/Avaliadores
 
 ### Checklist de Avaliação
-1. [REQUISITOS_ATENDIDOS.md](REQUISITOS_ATENDIDOS.md) 
-2. [MODELO_LOGICO_NORMALIZADO.md](MODELO_LOGICO_NORMALIZADO.md) 
-3. [08_testes_validacao.sql](08_testes_validacao.sql) 
+1. [MODELO_LOGICO_NORMALIZADO.md](MODELO_LOGICO_NORMALIZADO.md) 
+2. [08_testes_validacao.sql](08_testes_validacao.sql) 
 
 ### Demonstração Rápida
 ```bash
@@ -216,7 +207,6 @@ SELECT * FROM relatorios.vw_estatisticas_treinador;
 ### Documentação para Avaliação
 - **Modelo:** [MODELO_LOGICO_NORMALIZADO.md](MODELO_LOGICO_NORMALIZADO.md)
 - **Implementação:** [README_BD.md](README_BD.md)
-- **Evidências:** [REQUISITOS_ATENDIDOS.md](REQUISITOS_ATENDIDOS.md)
 
 ---
 
