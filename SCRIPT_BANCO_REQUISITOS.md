@@ -128,9 +128,6 @@ db/
 │   ├── CHECKLIST_ENTREGA.md          Entrega
 │   ├── PARA_O_PROFESSOR.md           Avaliação
 │   └── RESUMO_1_PAGINA.md            Resumo
-│
-└── 🎤 Apresentação
-    └── APRESENTACAO.md                24 slides
 ```
 
 ---
