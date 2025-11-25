@@ -24,13 +24,6 @@ SELECT * FROM relatorios.vw_estatisticas_treinador;
 - **[MODELO_LOGICO_NORMALIZADO.md](MODELO_LOGICO_NORMALIZADO.md)**
 - **[REQUISITOS_ATENDIDOS.md](REQUISITOS_ATENDIDOS.md)** 
 
-### Para Professores/Avaliadores
-- **[PARA_O_PROFESSOR.md](PARA_O_PROFESSOR.md)** 
-- **[CHECKLIST_ENTREGA.md](CHECKLIST_ENTREGA.md)** 
-- **[APRESENTACAO.md](APRESENTACAO.md)** 
-
----
-
 ## Scripts SQL
 
 ### Script Principal
